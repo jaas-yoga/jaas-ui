@@ -31,7 +31,7 @@ NEXT_BIN="$SCRIPT_DIR/node_modules/.bin/next"
 # local-dev convenience for running the whole stack together from here.
 # Both default to sibling checkouts; override if yours live elsewhere, or
 # skip starting one by setting its DIR var to "".
-BACKEND_DIR="${RUNE_BACKEND_DIR-$SCRIPT_DIR/../rune_skills}"
+BACKEND_DIR="${RUNE_BACKEND_DIR-$SCRIPT_DIR/../jaas-skills}"
 RUNECTL="$BACKEND_DIR/.venv/bin/runectl"
 GUARDRAILS_DIR="${RUNE_GUARDRAILS_DIR-$SCRIPT_DIR/../rune_guardrail}"
 GUARDRAILS_BIN="$GUARDRAILS_DIR/.venv/bin/rune-guardrails"
@@ -77,7 +77,7 @@ Usage: $(basename "$0") [start|stop|restart|status|logs [api|web|guardrails]]
 
 Environment overrides:
   RUNE_BACKEND_DIR   path to the rune-registry backend repo (default:
-                     ../rune_skills, a sibling checkout). Set to "" to skip
+                     ../jaas-skills, a sibling checkout). Set to "" to skip
                      starting the api — see also RUNE_API_URL in .env.local.
   RUNE_GUARDRAILS_DIR   path to the standalone rune-guardrails service repo
                         (default: ../rune_guardrail, a sibling checkout).
@@ -230,7 +230,7 @@ start_api() {
     fi
     if [ ! -d "$BACKEND_DIR" ]; then
         echo "[api] skipped — no repo found at $BACKEND_DIR"
-        echo "       (clone the rune_skills backend there, or set RUNE_BACKEND_DIR)"
+        echo "       (clone the jaas-skills backend there, or set RUNE_BACKEND_DIR)"
         return 0
     fi
 
@@ -258,7 +258,7 @@ start_api() {
     # to *relative* paths (design.md's local-prototype convention), which
     # must resolve against the backend repo's own directory, not this
     # script's — otherwise local dev data (blobs, tags, policy files)
-    # silently ends up nested under rune_ui instead of rune_skills.
+    # silently ends up nested under jaas-ui instead of jaas-skills.
     (
         cd "$BACKEND_DIR"
         nohup "$RUNECTL" serve --host "$API_HOST" --port "$API_PORT" >>"$(log_file api)" 2>&1 &

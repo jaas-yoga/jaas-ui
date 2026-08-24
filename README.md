@@ -1,4 +1,4 @@
-# rune_ui
+# jaas-ui
 
 The web UI for JaaS Skills: Google sign-in, skill search and
 browsing, the drafts authoring workflow, tenant/sharing administration, and
@@ -8,7 +8,7 @@ TypeScript + Tailwind v4 + shadcn/ui + Auth.js v5.
 This repo is independent of the backend it talks to — no shared code,
 only HTTP. It depends on two sibling repos at runtime (not at build time):
 
-- **`../rune_skills`** — the Python/FastAPI registry backend. Provides
+- **`../jaas-skills`** — the Python/FastAPI registry backend. Provides
   every API this app calls (search, drafts, tenants, sharing, guardrail
   policy) and validates the Google ID token this app forwards to it on
   sign-in.
@@ -27,7 +27,7 @@ cp .env.local.example .env.local   # fill in AUTH_SECRET, AUTH_GOOGLE_ID/SECRET
 ```
 
 `./run.sh status` / `./run.sh stop` / `./run.sh logs [api|web|guardrails]`
-manage all three. By default it expects `../rune_skills` and
+manage all three. By default it expects `../jaas-skills` and
 `../rune_guardrail` as sibling checkouts; override with `RUNE_BACKEND_DIR`
 / `RUNE_GUARDRAILS_DIR`, or set either to `""` to skip starting it (e.g. if
 a backend is already running elsewhere — point `RUNE_API_URL` at it
@@ -48,7 +48,7 @@ any page that calls it.
 ## Design docs
 
 The UI's design (`ui-design.md`) and phased delivery plan
-(`ui-implementation-plan.md`) live in the sibling `../rune_skills` repo —
+(`ui-implementation-plan.md`) live in the sibling `../jaas-skills` repo —
 they're cross-cutting documents that also describe the backend changes
 (auth, sharing, drafts, tenants) built to support this app, so they stay
 with the backend rather than being duplicated or forked here. See
