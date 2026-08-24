@@ -1,17 +1,17 @@
 ---
-name: rune-frontend-conventions
-description: Conventions and known gotchas for the rune-registry web app (this repo, rune_ui) — Next.js 16's breaking changes vs. training data, the Tailwind v4 CSS-first theming architecture, Auth.js v5 type-augmentation quirk, and the server-only backend API client pattern. Use when reading, writing, or reviewing any code in this repo.
+name: jaas-frontend-conventions
+description: Conventions and known gotchas for the jaas-registry web app (this repo, jaas_ui) — Next.js 16's breaking changes vs. training data, the Tailwind v4 CSS-first theming architecture, Auth.js v5 type-augmentation quirk, and the server-only backend API client pattern. Use when reading, writing, or reviewing any code in this repo.
 ---
 
-# rune-registry web app conventions
+# jaas-registry web app conventions
 
 Next.js 16 App Router + TypeScript + Tailwind v4 + shadcn/ui + Auth.js v5
 (`next-auth@beta`). This repo is independent from the Python backend it
-talks to (`../rune_skills`, a sibling checkout by convention) and from the
-standalone guardrails service (`../rune_guardrail`) — no shared code, only
+talks to (`../jaas_skills`, a sibling checkout by convention) and from the
+standalone guardrails service (`../jaas_guardrail`) — no shared code, only
 HTTP. `run.sh` in this repo's root starts all three together for local
-dev. Read `../rune_skills/ui-design.md` and
-`../rune_skills/ui-implementation-plan.md` for the full design and phase
+dev. Read `../jaas_skills/ui-design.md` and
+`../jaas_skills/ui-implementation-plan.md` for the full design and phase
 plan this app implements — those docs are cross-cutting (they also cover
 backend changes made to support the UI) so they stay in the backend repo
 rather than being duplicated here.
@@ -63,12 +63,12 @@ side has this quirk.
 
 ## The registry's JWT never reaches the browser
 
-- `src/lib/rune-api.ts`'s `runeFetch()` is the only way server code calls
+- `src/lib/jaas-api.ts`'s `jaasFetch()` is the only way server code calls
   the Python backend — it's `"server-only"`, reads the session via `auth()`,
   and attaches `Authorization: Bearer <token>` itself. Never fetch the
   backend directly from a client component or expose the token to one.
 - `src/lib/skills-api.ts` (search, metadata, shares) and future API modules
-  should be thin wrappers over `runeFetch`, called from Server
+  should be thin wrappers over `jaasFetch`, called from Server
   Components/Server Actions — not from `"use client"` code.
 
 ## Server Actions can't be inline inside a client-bundled file
@@ -83,8 +83,8 @@ export.
 
 ## Keeping the backend contract in sync
 
-`src/lib/rune-api-types.ts` is a **hand-kept mirror** of
-`../rune_skills/src/rune_registry/api/schemas.py`'s Pydantic response
+`src/lib/jaas-api-types.ts` is a **hand-kept mirror** of
+`../jaas_skills/src/jaas_registry/api/schemas.py`'s Pydantic response
 models (a sibling repo now — no shared filesystem to grep against
 automatically) — field names and shapes must match exactly. When the
 backend schema changes, update the matching TypeScript type here in a

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { DraftWorkspace } from "@/components/drafts/draft-workspace";
-import { RuneApiRequestError } from "@/lib/rune-api";
+import { JaasApiRequestError } from "@/lib/jaas-api";
 import { getDraft } from "@/lib/drafts-api";
 
 export default async function DraftWorkspacePage({
@@ -15,7 +15,7 @@ export default async function DraftWorkspacePage({
     try {
       return await getDraft(draftId);
     } catch (err) {
-      if (err instanceof RuneApiRequestError && err.status === 404) {
+      if (err instanceof JaasApiRequestError && err.status === 404) {
         notFound();
       }
       throw err;

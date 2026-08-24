@@ -1,8 +1,8 @@
 import "server-only";
 
-import { runeFetch } from "./rune-api";
-import type { RepoLinkResponse } from "./rune-api-types";
+import { jaasFetch } from "./jaas-api";
+import type { RepoLinkResponse } from "./jaas-api-types";
 
 export async function listRepoLinks(tenantId: string): Promise<RepoLinkResponse[]> {
-  return runeFetch<RepoLinkResponse[]>(`/api/v1/tenants/${encodeURIComponent(tenantId)}/repo-links`);
+  return jaasFetch<RepoLinkResponse[]>(`/api/v1/tenants/${encodeURIComponent(tenantId)}/repo-links`);
 }

@@ -1,12 +1,12 @@
 import "server-only";
 
-import { runeFetch } from "./rune-api";
+import { jaasFetch } from "./jaas-api";
 import type {
   ShareGrantResponse,
   SkillMetadataResponse,
   SearchResponse,
   SourceFilesResponse,
-} from "./rune-api-types";
+} from "./jaas-api-types";
 
 export async function searchSkills(params: {
   query?: string;
@@ -24,14 +24,14 @@ export async function searchSkills(params: {
   qs.set("page", String(params.page ?? 1));
   qs.set("pageSize", String(params.pageSize ?? 100));
 
-  return runeFetch<SearchResponse>(`/api/v1/skills?${qs.toString()}`);
+  return jaasFetch<SearchResponse>(`/api/v1/skills?${qs.toString()}`);
 }
 
 export async function getSkillMetadata(
   skillId: string,
   version: string,
 ): Promise<SkillMetadataResponse> {
-  return runeFetch<SkillMetadataResponse>(
+  return jaasFetch<SkillMetadataResponse>(
     `/api/v1/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}`,
   );
 }
@@ -40,7 +40,7 @@ export async function getSkillMetadata(
  * skill they don't manage simply sees no share management UI, not an error. */
 export async function listShareGrants(skillId: string): Promise<ShareGrantResponse[]> {
   try {
-    return await runeFetch<ShareGrantResponse[]>(
+    return await jaasFetch<ShareGrantResponse[]>(
       `/api/v1/skills/${encodeURIComponent(skillId)}/shares`,
     );
   } catch {
@@ -54,7 +54,7 @@ export async function listShareGrants(skillId: string): Promise<ShareGrantRespon
  * artifact/publish.py's load_source_documents). Anything else in the
  * skill's source directory (README.md, tests/, ...) still never appears. */
 export async function listSkillFiles(skillId: string, version: string): Promise<string[]> {
-  return runeFetch<string[]>(
+  return jaasFetch<string[]>(
     `/api/v1/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}/files`,
   );
 }
@@ -67,7 +67,7 @@ export async function getSkillFile(
   // Not encodeURIComponent(path) — it would escape "/" as "%2F", breaking a
   // multi-segment path against FastAPI's {file_path:path} converter (same
   // reasoning as drafts-api.ts's getDraftFile).
-  const result = await runeFetch<{ path: string; content: string }>(
+  const result = await jaasFetch<{ path: string; content: string }>(
     `/api/v1/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}/files/${path}`,
   );
   return result.content;
@@ -81,7 +81,7 @@ export async function listSkillSourceFiles(
   skillId: string,
   version: string,
 ): Promise<SourceFilesResponse> {
-  return runeFetch<SourceFilesResponse>(
+  return jaasFetch<SourceFilesResponse>(
     `/api/v1/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}/source-files`,
   );
 }
@@ -92,7 +92,7 @@ export async function getSkillSourceFile(
   path: string,
 ): Promise<string> {
   // Not encodeURIComponent(path) — same reasoning as getSkillFile above.
-  const result = await runeFetch<{ path: string; content: string }>(
+  const result = await jaasFetch<{ path: string; content: string }>(
     `/api/v1/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}/source-files/${path}`,
   );
   return result.content;

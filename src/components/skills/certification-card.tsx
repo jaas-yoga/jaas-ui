@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CERTIFICATION_STATUS_META, LEVEL_META } from "@/lib/guardrail-level-meta";
-import type { SkillMetadataResponse } from "@/lib/rune-api-types";
+import type { SkillMetadataResponse } from "@/lib/jaas-api-types";
 
 /** Sibling to the version detail page's Provenance card, same visual
  * pattern — a point-in-time guardrail attestation computed once at publish

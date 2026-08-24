@@ -1,5 +1,5 @@
 /**
- * Hand-kept mirror of src/rune_registry/api/schemas.py's auth response
+ * Hand-kept mirror of src/jaas_registry/api/schemas.py's auth response
  * models. Field names/shapes must match exactly — this is the contract
  * between the two codebases, not independently-designed types.
  */
@@ -31,7 +31,7 @@ export type RefreshResponse = {
   activeTenantId: string;
 };
 
-export type RuneApiError = {
+export type JaasApiError = {
   code: string;
   message: string;
   details: Record<string, unknown>;
@@ -221,7 +221,7 @@ export type SkillMetadataResponse = {
   ownerTenant: string;
   /** Set only when this version was released via the git-native CI path
    * (POST /api/v1/skills/release) — null means published via the web UI's
-   * drafts flow or a local `runectl publish`, not "unknown". */
+   * drafts flow or a local `jaasctl publish`, not "unknown". */
   sourceRepo: string | null;
   sourceCommit: string | null;
   sourceTag: string | null;

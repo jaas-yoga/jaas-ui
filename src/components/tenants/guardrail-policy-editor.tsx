@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { updateGuardrailPolicyAction } from "@/lib/actions";
 import { LEVEL_META } from "@/lib/guardrail-level-meta";
-import type { GuardrailDefinitionResponse } from "@/lib/rune-api-types";
+import type { GuardrailDefinitionResponse } from "@/lib/jaas-api-types";
 
 /** ui-design.md §9.15/§9.16/§10.7. Owns one unified enabled-set for every
  * configurable (non-mandatory) check across all levels, saved with a

@@ -7,7 +7,7 @@ import { GitHubOAuthAppCard } from "@/components/tenants/github-oauth-app-card";
 import { RepoLinksEditor } from "@/components/tenants/repo-links-editor";
 import { getGithubConnection, getGithubOAuthApp } from "@/lib/github-api";
 import { listRepoLinks } from "@/lib/repo-links-api";
-import { RuneApiRequestError } from "@/lib/rune-api";
+import { JaasApiRequestError } from "@/lib/jaas-api";
 import { listMembers } from "@/lib/tenants-api";
 
 /** Split out of the Guardrails tab: connecting GitHub and registering which
@@ -32,14 +32,14 @@ export default async function TenantRepositoriesPage({
       getGithubOAuthApp(id),
     ]);
   } catch (err) {
-    if (err instanceof RuneApiRequestError && err.status === 404) {
+    if (err instanceof JaasApiRequestError && err.status === 404) {
       notFound();
     }
     throw err;
   }
 
   const session = await auth();
-  const me = members.find((m) => m.userId === session?.runeUser?.id);
+  const me = members.find((m) => m.userId === session?.jaasUser?.id);
   const isAdmin = me?.role === "admin";
 
   return (

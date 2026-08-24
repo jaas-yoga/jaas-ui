@@ -9,7 +9,7 @@ import {
   listGuardrailCatalog,
   getTenantGuardrailPolicy,
 } from "@/lib/guardrails-api";
-import { RuneApiRequestError } from "@/lib/rune-api";
+import { JaasApiRequestError } from "@/lib/jaas-api";
 import { listMembers } from "@/lib/tenants-api";
 
 /** ui-design.md §10.7 — grouped-toggle pattern (GitHub Code security &
@@ -33,14 +33,14 @@ export default async function TenantGuardrailsPage({
       listCustomGuardrailRules(id),
     ]);
   } catch (err) {
-    if (err instanceof RuneApiRequestError && err.status === 404) {
+    if (err instanceof JaasApiRequestError && err.status === 404) {
       notFound();
     }
     throw err;
   }
 
   const session = await auth();
-  const me = members.find((m) => m.userId === session?.runeUser?.id);
+  const me = members.find((m) => m.userId === session?.jaasUser?.id);
   const isAdmin = me?.role === "admin";
 
   return (
@@ -51,7 +51,7 @@ export default async function TenantGuardrailsPage({
         </h1>
         <p className="text-sm text-muted-foreground">
           Automated checks that run every time someone on this tenant publishes a skill — from
-          the web UI, `runectl publish`, or a git-native CI release.
+          the web UI, `jaasctl publish`, or a git-native CI release.
         </p>
       </div>
 

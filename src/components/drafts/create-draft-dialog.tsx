@@ -26,7 +26,7 @@ type Destination = "local" | "github";
 
 function suggestWorkingBranch(repoFullName: string): string {
   const suffix = Math.random().toString(16).slice(2, 8);
-  return `rune/draft/${repoFullName.split("/")[1]}-${suffix}`;
+  return `jaas/draft/${repoFullName.split("/")[1]}-${suffix}`;
 }
 
 /** Replaces the plain `<form action={createDraftAction}>` button — "Create

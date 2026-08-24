@@ -22,7 +22,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { createRepoLinkAction, deleteRepoLinkAction, updateRepoLinkAction } from "@/lib/actions";
-import type { GithubRepoResponse, RepoLinkResponse } from "@/lib/rune-api-types";
+import type { GithubRepoResponse, RepoLinkResponse } from "@/lib/jaas-api-types";
 
 function parseBranches(text: string): string[] {
   return text
@@ -135,7 +135,7 @@ function ConnectRepoDialog({
             ) : (
               <>
                 Registers which git repo may release this skill id from CI — required before{" "}
-                <code className="rounded bg-muted px-1 py-0.5">runectl release</code> will accept
+                <code className="rounded bg-muted px-1 py-0.5">jaasctl release</code> will accept
                 a release for it. A skill id can only ever be linked to one repo, tenant-wide.
               </>
             )}
@@ -176,7 +176,7 @@ function ConnectRepoDialog({
               <p>
                 Prefer a personal access token instead? Mint one under Account → Access Tokens and
                 pass it as <code className="rounded bg-muted px-1 py-0.5">--token</code> to{" "}
-                <code className="rounded bg-muted px-1 py-0.5">runectl release</code>.
+                <code className="rounded bg-muted px-1 py-0.5">jaasctl release</code>.
               </p>
             </div>
           </div>
@@ -292,7 +292,7 @@ function ConnectRepoDialog({
 }
 
 /** design.md §4.5's git-native release flow — a tenant admin must register
- * a skill id's repo here before CI's `runectl release`/OIDC path (or a PAT)
+ * a skill id's repo here before CI's `jaasctl release`/OIDC path (or a PAT)
  * is authorized to release it (anti-squatting; authn/repo_links.py in the
  * backend enforces this server-side regardless of what this UI shows). */
 export function RepoLinksEditor({

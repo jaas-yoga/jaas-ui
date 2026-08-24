@@ -12,11 +12,11 @@ only HTTP. It depends on two sibling repos at runtime (not at build time):
   every API this app calls (search, drafts, tenants, sharing, guardrail
   policy) and validates the Google ID token this app forwards to it on
   sign-in.
-- **`../rune_guardrail`** — the standalone guardrails scanning service.
+- **`../jaas_guardrail`** — the standalone guardrails scanning service.
   This app never talks to it directly; only the backend does.
 
 Both are optional for `run.sh` (see below) — this app runs standalone
-against whatever `RUNE_API_URL` points at, including a backend that isn't
+against whatever `JAAS_API_URL` points at, including a backend that isn't
 managed by this script at all.
 
 ## Running it
@@ -28,9 +28,9 @@ cp .env.local.example .env.local   # fill in AUTH_SECRET, AUTH_GOOGLE_ID/SECRET
 
 `./run.sh status` / `./run.sh stop` / `./run.sh logs [api|web|guardrails]`
 manage all three. By default it expects `../jaas-skills` and
-`../rune_guardrail` as sibling checkouts; override with `RUNE_BACKEND_DIR`
-/ `RUNE_GUARDRAILS_DIR`, or set either to `""` to skip starting it (e.g. if
-a backend is already running elsewhere — point `RUNE_API_URL` at it
+`../jaas_guardrail` as sibling checkouts; override with `JAAS_BACKEND_DIR`
+/ `JAAS_GUARDRAILS_DIR`, or set either to `""` to skip starting it (e.g. if
+a backend is already running elsewhere — point `JAAS_API_URL` at it
 instead). Run `./run.sh --help` for the full list of environment
 overrides.
 
@@ -40,6 +40,16 @@ registered as an authorized redirect URI, and the backend started with
 the *same* client id so it validates ID tokens against the right
 audience — `run.sh` wires this up automatically from this repo's own
 `.env.local`.
+
+### Skipping Google: local dev login
+
+For local development without a Google OAuth client, set
+`JAAS_DEV_LOGIN_PASSWORD` in `.env.local` and use the "Sign in with email"
+option on the login page instead. Go to
+[http://localhost:3027/login](http://localhost:3027/login) and sign in with
+`owner@jaas.local` / `jaas-dev-2026` (or `admin@jaas.local` — same
+password). See `.env.local.example` and `./run.sh --help` for details; the
+backend rejects this login path entirely unless the password is configured.
 
 For plain frontend-only work (`npm run dev`, `npm run build`, `npm run
 lint`), no backend is required to start the dev server, only to exercise
@@ -52,5 +62,5 @@ The UI's design (`ui-design.md`) and phased delivery plan
 they're cross-cutting documents that also describe the backend changes
 (auth, sharing, drafts, tenants) built to support this app, so they stay
 with the backend rather than being duplicated or forked here. See
-`.claude/skills/rune-frontend-conventions/SKILL.md` in this repo for
+`.claude/skills/jaas-frontend-conventions/SKILL.md` in this repo for
 this codebase's own conventions and gotchas.

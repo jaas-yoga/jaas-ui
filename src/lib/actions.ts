@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { signOut } from "@/auth";
 import { getDraftFile } from "@/lib/drafts-api";
-import { RuneApiRequestError, runeFetch } from "@/lib/rune-api";
+import { JaasApiRequestError, jaasFetch } from "@/lib/jaas-api";
 import { getSkillFile, getSkillSourceFile, listSkillSourceFiles } from "@/lib/skills-api";
 import type {
   CreateDraftGitRequest,
@@ -24,7 +24,7 @@ import type {
   TenantMembershipResponse,
   ValidateCustomGuardrailRuleResponse,
   ValidationResultResponse,
-} from "@/lib/rune-api-types";
+} from "@/lib/jaas-api-types";
 
 export async function signOutAction() {
   await signOut({ redirectTo: "/login" });
@@ -43,14 +43,14 @@ export async function createShareGrantAction(
   path: string,
 ): Promise<ActionResult> {
   try {
-    await runeFetch(`/api/v1/skills/${encodeURIComponent(skillId)}/shares`, {
+    await jaasFetch(`/api/v1/skills/${encodeURIComponent(skillId)}/shares`, {
       method: "POST",
       body: JSON.stringify(input),
     });
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to create share grant.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to create share grant.",
     };
   }
   revalidatePath(path);
@@ -63,14 +63,14 @@ export async function revokeShareGrantAction(
   path: string,
 ): Promise<ActionResult> {
   try {
-    await runeFetch(
+    await jaasFetch(
       `/api/v1/skills/${encodeURIComponent(skillId)}/shares/${encodeURIComponent(grantId)}`,
       { method: "DELETE" },
     );
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to revoke share grant.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to revoke share grant.",
     };
   }
   revalidatePath(path);
@@ -80,7 +80,7 @@ export async function revokeShareGrantAction(
 /** ui-design.md §11.4. Creates a blank draft, or forks a published version
  * into a new one, then navigates straight into the authoring workspace. */
 export async function createDraftAction(forkFrom?: { id: string; version: string }) {
-  const draft = await runeFetch<DraftResponse>("/api/v1/drafts", {
+  const draft = await jaasFetch<DraftResponse>("/api/v1/drafts", {
     method: "POST",
     body: JSON.stringify({ forkFrom: forkFrom ?? null }),
   });
@@ -102,13 +102,13 @@ export async function createDraftWithGitAction(
   git: CreateDraftGitRequest,
 ): Promise<CreateDraftWithGitResult> {
   try {
-    const draft = await runeFetch<DraftResponse>("/api/v1/drafts", {
+    const draft = await jaasFetch<DraftResponse>("/api/v1/drafts", {
       method: "POST",
       body: JSON.stringify({ forkFrom: null, git }),
     });
     return { ok: true, draftId: draft.id };
   } catch (err) {
-    if (err instanceof RuneApiRequestError) {
+    if (err instanceof JaasApiRequestError) {
       return { ok: false, error: err.message, code: err.code };
     }
     return { ok: false, error: "Failed to create draft." };
@@ -174,7 +174,7 @@ export async function saveDraftFileAction(
   options: { syncToGit?: boolean; commitMessage?: string } = {},
 ): Promise<SaveFileResult> {
   try {
-    const draft = await runeFetch<DraftResponse>(`/api/v1/drafts/${draftId}/files/${path}`, {
+    const draft = await jaasFetch<DraftResponse>(`/api/v1/drafts/${draftId}/files/${path}`, {
       method: "PUT",
       body: JSON.stringify({
         content,
@@ -184,7 +184,7 @@ export async function saveDraftFileAction(
     });
     return { ok: true, files: draft.files, gitSyncStatus: draft.gitSyncStatus, gitSyncError: draft.gitSyncError };
   } catch (err) {
-    return { ok: false, error: err instanceof RuneApiRequestError ? err.message : "Save failed." };
+    return { ok: false, error: err instanceof JaasApiRequestError ? err.message : "Save failed." };
   }
 }
 
@@ -193,14 +193,14 @@ export async function deleteDraftFileAction(
   path: string,
 ): Promise<SaveFileResult> {
   try {
-    const draft = await runeFetch<DraftResponse>(`/api/v1/drafts/${draftId}/files/${path}`, {
+    const draft = await jaasFetch<DraftResponse>(`/api/v1/drafts/${draftId}/files/${path}`, {
       method: "DELETE",
     });
     return { ok: true, files: draft.files, gitSyncStatus: draft.gitSyncStatus, gitSyncError: draft.gitSyncError };
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Delete failed.",
+      error: err instanceof JaasApiRequestError ? err.message : "Delete failed.",
     };
   }
 }
@@ -219,7 +219,7 @@ export async function moveDraftToGitDirectoryAction(
   draftId: string,
 ): Promise<MoveDraftToGitDirectoryResult> {
   try {
-    const draft = await runeFetch<DraftResponse>(
+    const draft = await jaasFetch<DraftResponse>(
       `/api/v1/drafts/${draftId}/git/move-to-directory`,
       { method: "POST" },
     );
@@ -229,7 +229,7 @@ export async function moveDraftToGitDirectoryAction(
       gitSyncStatus: draft.gitSyncStatus,
     };
   } catch (err) {
-    if (err instanceof RuneApiRequestError) {
+    if (err instanceof JaasApiRequestError) {
       return { ok: false, error: err.message, code: err.code };
     }
     return { ok: false, error: "Failed to move this skill into a directory." };
@@ -242,11 +242,11 @@ export async function moveDraftToGitDirectoryAction(
  * called from no longer exists. */
 export async function deleteDraftAction(draftId: string): Promise<ActionResult> {
   try {
-    await runeFetch(`/api/v1/drafts/${draftId}`, { method: "DELETE" });
+    await jaasFetch(`/api/v1/drafts/${draftId}`, { method: "DELETE" });
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to delete draft.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to delete draft.",
     };
   }
   revalidatePath("/drafts");
@@ -256,7 +256,7 @@ export async function deleteDraftAction(draftId: string): Promise<ActionResult> 
 /** ui-design.md §11.3 — runs the exact same validate_skill_package the CLI
  * and the publish pipeline use; there is only one validation implementation. */
 export async function validateDraftAction(draftId: string): Promise<ValidationResultResponse> {
-  return runeFetch<ValidationResultResponse>(`/api/v1/drafts/${draftId}/validate`, {
+  return jaasFetch<ValidationResultResponse>(`/api/v1/drafts/${draftId}/validate`, {
     method: "POST",
   });
 }
@@ -270,13 +270,13 @@ export async function publishDraftAction(
   visibility: "public" | "private",
 ): Promise<PublishDraftResult> {
   try {
-    const skill = await runeFetch<DraftPublishResponse>(`/api/v1/drafts/${draftId}/publish`, {
+    const skill = await jaasFetch<DraftPublishResponse>(`/api/v1/drafts/${draftId}/publish`, {
       method: "POST",
       body: JSON.stringify({ visibility }),
     });
     return { ok: true, skill };
   } catch (err) {
-    if (err instanceof RuneApiRequestError) {
+    if (err instanceof JaasApiRequestError) {
       return {
         ok: false,
         error: err.message,
@@ -299,7 +299,7 @@ export type CreateTenantResult =
  * anyone into the new tenant. */
 export async function createTenantAction(name: string): Promise<CreateTenantResult> {
   try {
-    const tenant = await runeFetch<TenantMembershipResponse>("/api/v1/tenants", {
+    const tenant = await jaasFetch<TenantMembershipResponse>("/api/v1/tenants", {
       method: "POST",
       body: JSON.stringify({ name }),
     });
@@ -307,7 +307,7 @@ export async function createTenantAction(name: string): Promise<CreateTenantResu
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to create tenant.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to create tenant.",
     };
   }
 }
@@ -322,7 +322,7 @@ export async function inviteMemberAction(
   role: "admin" | "member",
 ): Promise<InviteMemberResult> {
   try {
-    const invite = await runeFetch<InviteMemberResponse>(
+    const invite = await jaasFetch<InviteMemberResponse>(
       `/api/v1/tenants/${tenantId}/members`,
       { method: "POST", body: JSON.stringify({ email, role }) },
     );
@@ -331,7 +331,7 @@ export async function inviteMemberAction(
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to invite member.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to invite member.",
     };
   }
 }
@@ -348,7 +348,7 @@ export async function updateGuardrailPolicyAction(
   enabledCheckIds: string[],
 ): Promise<UpdateGuardrailPolicyResult> {
   try {
-    const policy = await runeFetch<TenantGuardrailPolicyResponse>(
+    const policy = await jaasFetch<TenantGuardrailPolicyResponse>(
       `/api/v1/tenants/${tenantId}/guardrail-policy`,
       { method: "PUT", body: JSON.stringify({ enabledCheckIds }) },
     );
@@ -357,7 +357,7 @@ export async function updateGuardrailPolicyAction(
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to update guardrails.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to update guardrails.",
     };
   }
 }
@@ -371,7 +371,7 @@ export type CreatePatResult =
  * endpoint never returns it again. */
 export async function createPatAction(name: string): Promise<CreatePatResult> {
   try {
-    const pat = await runeFetch<CreatePatResponse>("/api/v1/account/tokens", {
+    const pat = await jaasFetch<CreatePatResponse>("/api/v1/account/tokens", {
       method: "POST",
       body: JSON.stringify({ name }),
     });
@@ -380,18 +380,18 @@ export async function createPatAction(name: string): Promise<CreatePatResult> {
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to create token.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to create token.",
     };
   }
 }
 
 export async function revokePatAction(patId: string): Promise<ActionResult> {
   try {
-    await runeFetch(`/api/v1/account/tokens/${patId}`, { method: "DELETE" });
+    await jaasFetch(`/api/v1/account/tokens/${patId}`, { method: "DELETE" });
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to revoke token.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to revoke token.",
     };
   }
   revalidatePath("/account/tokens");
@@ -423,7 +423,7 @@ export async function putCustomGuardrailRuleAction(
   input: CustomGuardrailRuleInput,
 ): Promise<PutCustomGuardrailRuleResult> {
   try {
-    const rule = await runeFetch<CustomGuardrailRuleResponse>(
+    const rule = await jaasFetch<CustomGuardrailRuleResponse>(
       `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/${encodeURIComponent(input.slug)}`,
       { method: "PUT", body: JSON.stringify(input) },
     );
@@ -432,7 +432,7 @@ export async function putCustomGuardrailRuleAction(
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to save custom rule.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to save custom rule.",
     };
   }
 }
@@ -442,14 +442,14 @@ export async function deleteCustomGuardrailRuleAction(
   slug: string,
 ): Promise<ActionResult> {
   try {
-    await runeFetch(
+    await jaasFetch(
       `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/${encodeURIComponent(slug)}`,
       { method: "DELETE" },
     );
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to delete custom rule.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to delete custom rule.",
     };
   }
   revalidatePath(`/tenants/${tenantId}/guardrails`);
@@ -462,7 +462,7 @@ export async function validateCustomGuardrailRuleAction(
   tenantId: string,
   input: CustomGuardrailRuleInput,
 ): Promise<ValidateCustomGuardrailRuleResponse> {
-  return runeFetch<ValidateCustomGuardrailRuleResponse>(
+  return jaasFetch<ValidateCustomGuardrailRuleResponse>(
     `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/validate`,
     { method: "POST", body: JSON.stringify(input) },
   );
@@ -481,7 +481,7 @@ export async function createRepoLinkAction(
   input: { skillId: string; repoUrl: string; releaseBranches: string[] },
 ): Promise<CreateRepoLinkResult> {
   try {
-    const link = await runeFetch<RepoLinkResponse>(
+    const link = await jaasFetch<RepoLinkResponse>(
       `/api/v1/tenants/${encodeURIComponent(tenantId)}/repo-links`,
       { method: "POST", body: JSON.stringify(input) },
     );
@@ -490,7 +490,7 @@ export async function createRepoLinkAction(
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to connect repo.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to connect repo.",
     };
   }
 }
@@ -503,7 +503,7 @@ export async function updateRepoLinkAction(
   releaseBranches: string[],
 ): Promise<CreateRepoLinkResult> {
   try {
-    const link = await runeFetch<RepoLinkResponse>(
+    const link = await jaasFetch<RepoLinkResponse>(
       `/api/v1/tenants/${encodeURIComponent(tenantId)}/repo-links/${encodeURIComponent(skillId)}`,
       { method: "PUT", body: JSON.stringify({ releaseBranches }) },
     );
@@ -512,7 +512,7 @@ export async function updateRepoLinkAction(
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to update repo link.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to update repo link.",
     };
   }
 }
@@ -522,14 +522,14 @@ export async function deleteRepoLinkAction(
   skillId: string,
 ): Promise<ActionResult> {
   try {
-    await runeFetch(
+    await jaasFetch(
       `/api/v1/tenants/${encodeURIComponent(tenantId)}/repo-links/${encodeURIComponent(skillId)}`,
       { method: "DELETE" },
     );
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to remove repo link.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to remove repo link.",
     };
   }
   revalidatePath(`/tenants/${tenantId}/guardrails`);
@@ -544,7 +544,7 @@ export async function deleteRepoLinkAction(
  * directly (not through this app), which is why there's no "finish
  * connecting" action here — the backend handles that leg entirely. */
 export async function connectGithubAction(tenantId: string): Promise<void> {
-  const { authorizeUrl } = await runeFetch<GithubConnectUrlResponse>(
+  const { authorizeUrl } = await jaasFetch<GithubConnectUrlResponse>(
     `/api/v1/tenants/${encodeURIComponent(tenantId)}/github/connect-url`,
   );
   redirect(authorizeUrl);
@@ -552,13 +552,13 @@ export async function connectGithubAction(tenantId: string): Promise<void> {
 
 export async function disconnectGithubAction(tenantId: string): Promise<ActionResult> {
   try {
-    await runeFetch(`/api/v1/tenants/${encodeURIComponent(tenantId)}/github/connection`, {
+    await jaasFetch(`/api/v1/tenants/${encodeURIComponent(tenantId)}/github/connection`, {
       method: "DELETE",
     });
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to disconnect GitHub.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to disconnect GitHub.",
     };
   }
   revalidatePath(`/tenants/${tenantId}/repositories`);
@@ -577,7 +577,7 @@ export async function saveGithubOAuthAppAction(
   input: GithubOAuthAppRequest,
 ): Promise<SaveGithubOAuthAppResult> {
   try {
-    const app = await runeFetch<GithubOAuthAppResponse>(
+    const app = await jaasFetch<GithubOAuthAppResponse>(
       `/api/v1/tenants/${encodeURIComponent(tenantId)}/github/oauth-app`,
       { method: "PUT", body: JSON.stringify(input) },
     );
@@ -585,20 +585,20 @@ export async function saveGithubOAuthAppAction(
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to save GitHub OAuth App.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to save GitHub OAuth App.",
     };
   }
 }
 
 export async function removeGithubOAuthAppAction(tenantId: string): Promise<ActionResult> {
   try {
-    await runeFetch(`/api/v1/tenants/${encodeURIComponent(tenantId)}/github/oauth-app`, {
+    await jaasFetch(`/api/v1/tenants/${encodeURIComponent(tenantId)}/github/oauth-app`, {
       method: "DELETE",
     });
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to remove GitHub OAuth App.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to remove GitHub OAuth App.",
     };
   }
   revalidatePath(`/tenants/${tenantId}/repositories`);
@@ -611,14 +611,14 @@ export type ListGithubReposResult =
 
 export async function listGithubReposAction(tenantId: string): Promise<ListGithubReposResult> {
   try {
-    const repos = await runeFetch<GithubRepoResponse[]>(
+    const repos = await jaasFetch<GithubRepoResponse[]>(
       `/api/v1/tenants/${encodeURIComponent(tenantId)}/github/repos`,
     );
     return { ok: true, repos };
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to load repositories.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to load repositories.",
     };
   }
 }
@@ -633,7 +633,7 @@ export async function listGithubBranchesAction(
   repo: string,
 ): Promise<ListGithubBranchesResult> {
   try {
-    const branches = await runeFetch<string[]>(
+    const branches = await jaasFetch<string[]>(
       `/api/v1/tenants/${encodeURIComponent(tenantId)}/github/repos/` +
         `${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/branches`,
     );
@@ -641,7 +641,7 @@ export async function listGithubBranchesAction(
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof RuneApiRequestError ? err.message : "Failed to load branches.",
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to load branches.",
     };
   }
 }

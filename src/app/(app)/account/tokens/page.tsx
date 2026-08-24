@@ -16,7 +16,7 @@ export default async function TokensPage() {
             Personal Access Tokens
           </h1>
           <p className="text-sm text-muted-foreground">
-            For using <code className="font-mono text-xs">runectl</code> from the command line.
+            For using <code className="font-mono text-xs">jaasctl</code> from the command line.
           </p>
         </div>
         <CreatePatDialog />
@@ -26,7 +26,7 @@ export default async function TokensPage() {
         <EmptyState
           icon={KeyRound}
           title="No tokens yet"
-          description="Create one to authenticate runectl from a machine without a browser."
+          description="Create one to authenticate jaasctl from a machine without a browser."
           action={<CreatePatDialog />}
         />
       ) : (

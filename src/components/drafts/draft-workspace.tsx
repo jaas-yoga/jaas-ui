@@ -31,7 +31,7 @@ import {
   validateDraftAction,
 } from "@/lib/actions";
 import { languageForPath } from "@/lib/monaco-language";
-import type { ValidationResultResponse } from "@/lib/rune-api-types";
+import type { ValidationResultResponse } from "@/lib/jaas-api-types";
 import { cn } from "@/lib/utils";
 
 type TabStatus = "loading" | "saved" | "dirty" | "saving" | "error";

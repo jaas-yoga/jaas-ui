@@ -4,8 +4,8 @@ import { auth } from "@/auth";
 import { InviteMemberDialog } from "@/components/tenants/invite-member-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { RuneApiRequestError } from "@/lib/rune-api";
-import type { MemberResponse } from "@/lib/rune-api-types";
+import { JaasApiRequestError } from "@/lib/jaas-api";
+import type { MemberResponse } from "@/lib/jaas-api-types";
 import { listMembers } from "@/lib/tenants-api";
 
 function initials(name: string): string {
@@ -30,14 +30,14 @@ export default async function TenantMembersPage({
   try {
     members = await listMembers(id);
   } catch (err) {
-    if (err instanceof RuneApiRequestError && err.status === 404) {
+    if (err instanceof JaasApiRequestError && err.status === 404) {
       notFound();
     }
     throw err;
   }
 
   const session = await auth();
-  const me = members.find((m) => m.userId === session?.runeUser?.id);
+  const me = members.find((m) => m.userId === session?.jaasUser?.id);
   const isAdmin = me?.role === "admin";
 
   return (

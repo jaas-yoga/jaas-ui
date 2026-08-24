@@ -1,7 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 
 import { LEVEL_META } from "@/lib/guardrail-level-meta";
-import type { ValidationResultResponse } from "@/lib/rune-api-types";
+import type { ValidationResultResponse } from "@/lib/jaas-api-types";
 
 /** Sibling to ValidationResultsPanel/GuardrailWarningsPanel — shown after a
  * successful Validate call to preview the certification a publish would

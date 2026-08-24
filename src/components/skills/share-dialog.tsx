@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createShareGrantAction, revokeShareGrantAction } from "@/lib/actions";
-import type { ShareGrantResponse } from "@/lib/rune-api-types";
+import type { ShareGrantResponse } from "@/lib/jaas-api-types";
 
 /**
  * ui-design.md §10.5. Known simplification vs. the full design: grantees are

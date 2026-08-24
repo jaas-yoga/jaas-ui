@@ -30,7 +30,7 @@ import {
   validateCustomGuardrailRuleAction,
   type CustomGuardrailRuleInput,
 } from "@/lib/actions";
-import type { CustomGuardrailRuleResponse } from "@/lib/rune-api-types";
+import type { CustomGuardrailRuleResponse } from "@/lib/jaas-api-types";
 
 const CATEGORIES = [
   "SECRET",
@@ -45,7 +45,7 @@ const CATEGORIES = [
   "CONTENT_SAFETY",
 ] as const;
 
-// Matches rune_guardrails/executors.py::EXECUTORS_BY_KIND exactly — a
+// Matches jaas_guardrails/executors.py::EXECUTORS_BY_KIND exactly — a
 // custom rule can only ever use one of these, never a new kind (see that
 // service's README "Custom rules" section for why: no code-execution path).
 const KINDS = [
@@ -294,7 +294,7 @@ function RuleFormDialog({
 
 /** design.md §4.5's "user can define guardrails" — a tenant-owned library
  * of reusable custom rules, applied tenant-wide or per-skill via a
- * .rune/guardrails.yaml `apply:` list (guardrails/skill_config.py in the
+ * .jaas/guardrails.yaml `apply:` list (guardrails/skill_config.py in the
  * backend). This library never runs anything itself; the standalone
  * guardrails service validates+executes whatever gets sent to it. */
 export function CustomGuardrailRulesEditor({
@@ -328,7 +328,7 @@ export function CustomGuardrailRulesEditor({
           <p className="text-xs text-muted-foreground">
             Rules this tenant defines itself, on top of the platform catalog above. Apply them
             tenant-wide here, or per-skill via that skill&apos;s own{" "}
-            <code className="rounded bg-muted px-1 py-0.5">.rune/guardrails.yaml</code>.
+            <code className="rounded bg-muted px-1 py-0.5">.jaas/guardrails.yaml</code>.
           </p>
         </div>
         {isAdmin && (
@@ -345,7 +345,7 @@ export function CustomGuardrailRulesEditor({
           title="No custom rules yet"
           description={
             isAdmin
-              ? "Define a rule here, or push one from git with `runectl guardrails push`."
+              ? "Define a rule here, or push one from git with `jaasctl guardrails push`."
               : "This tenant hasn't defined any custom guardrail rules."
           }
         />

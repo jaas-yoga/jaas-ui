@@ -1,6 +1,6 @@
 import { CheckCircle2, XCircle } from "lucide-react";
 
-import type { ValidationResultResponse } from "@/lib/rune-api-types";
+import type { ValidationResultResponse } from "@/lib/jaas-api-types";
 
 /** ui-design.md §9 item 9. Maps a validation error to the file most likely
  * to fix it — a small static lookup, not a general error->location engine. */

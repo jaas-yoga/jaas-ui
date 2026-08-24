@@ -63,7 +63,7 @@ export function CreatePatDialog() {
               <DialogDescription>
                 This is the only time it will be shown. Store it somewhere safe — for example,{" "}
                 <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-                  export RUNE_TOKEN=...
+                  export JAAS_TOKEN=...
                 </code>
                 .
               </DialogDescription>
@@ -96,7 +96,7 @@ export function CreatePatDialog() {
             <DialogHeader>
               <DialogTitle>Create a personal access token</DialogTitle>
               <DialogDescription>
-                For using <code className="font-mono text-xs">runectl</code> from a machine
+                For using <code className="font-mono text-xs">jaasctl</code> from a machine
                 without a browser. It carries the same access your current session has.
               </DialogDescription>
             </DialogHeader>

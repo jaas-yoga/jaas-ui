@@ -12,7 +12,7 @@ import { listRepoLinks } from "@/lib/repo-links-api";
 
 export default async function DraftsPage() {
   const session = await auth();
-  const tenantId = session?.runeActiveTenantId;
+  const tenantId = session?.jaasActiveTenantId;
   const [drafts, githubConnection, repoLinks] = await Promise.all([
     listDrafts(),
     tenantId ? getGithubConnection(tenantId) : Promise.resolve(null),

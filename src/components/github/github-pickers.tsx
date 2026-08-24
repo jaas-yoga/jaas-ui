@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listGithubBranchesAction, listGithubReposAction } from "@/lib/actions";
-import type { GithubRepoResponse } from "@/lib/rune-api-types";
+import type { GithubRepoResponse } from "@/lib/jaas-api-types";
 
 /** https://github.com/acme/tool-x(.git)? -> {owner: "acme", name: "tool-x"}
  * — null for anything else (a non-GitHub URL, which just means the live

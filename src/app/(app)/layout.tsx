@@ -13,16 +13,16 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
     redirect("/login");
   }
 
-  const user = session.runeUser
+  const user = session.jaasUser
     ? {
-        name: session.runeUser.name,
-        email: session.runeUser.email,
-        imageUrl: session.runeUser.pictureUrl ?? undefined,
+        name: session.jaasUser.name,
+        email: session.jaasUser.email,
+        imageUrl: session.jaasUser.pictureUrl ?? undefined,
       }
     : undefined;
 
   return (
-    <AppShell user={user} tenants={session.runeTenants} activeTenantId={session.runeActiveTenantId}>
+    <AppShell user={user} tenants={session.jaasTenants} activeTenantId={session.jaasActiveTenantId}>
       {children}
     </AppShell>
   );

@@ -7,7 +7,7 @@ import { useTransition } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { connectGithubAction, disconnectGithubAction } from "@/lib/actions";
-import type { GithubConnectionResponse } from "@/lib/rune-api-types";
+import type { GithubConnectionResponse } from "@/lib/jaas-api-types";
 
 /** Sits above Connected Repos on the Repositories tab — connecting here is
  * what turns Connect-a-repo's manual URL/branch entry into a live picker

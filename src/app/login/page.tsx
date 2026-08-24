@@ -1,24 +1,65 @@
+import { BrainCircuit, Sparkles } from "lucide-react";
+import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { auth, signIn } from "@/auth";
+import { SolarSystem } from "@/components/login/solar-system";
+import { ThemeSwitch } from "@/components/theme/theme-switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 /** ui-design.md §10 sitemap /login, §4.2 sign-in sequence. */
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const session = await auth();
   if (session) {
     redirect("/skills");
   }
+  const { error } = await searchParams;
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
+    <div
+      className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background p-4"
+      style={{
+        backgroundImage:
+          "radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.09) 1px, transparent 0), " +
+          "radial-gradient(circle at 50% 50%, hsl(var(--brand) / 0.18), transparent 55%)",
+        backgroundSize: "36px 36px, 100% 100%",
+      }}
+    >
+      <SolarSystem />
+
+      <div className="absolute right-4 top-4">
+        <ThemeSwitch />
+      </div>
+
+      <Card className="relative w-full max-w-sm border-border/60 shadow-xl shadow-brand/5">
+        <CardHeader className="items-center text-center">
+          <div className="relative mb-1">
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand/70 shadow-lg shadow-brand/30">
+              <BrainCircuit className="size-7 text-brand-foreground" />
+            </div>
+            <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-background ring-2 ring-background">
+              <Sparkles className="size-3.5 text-brand" />
+            </span>
+          </div>
           <CardTitle className="text-xl">JaaS Skills</CardTitle>
           <CardDescription>Discover, share, and publish AI-agent skill packages.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {error ? (
+            <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error === "CredentialsSignin"
+                ? "Invalid email or password."
+                : "Sign-in failed. Please try again."}
+            </p>
+          ) : null}
+
           <form
             action={async () => {
               "use server";
@@ -29,6 +70,55 @@ export default async function LoginPage() {
               <GoogleIcon className="size-4" />
               Sign in with Google
             </Button>
+          </form>
+
+          <div className="flex items-center gap-2">
+            <Separator className="flex-1" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <Separator className="flex-1" />
+          </div>
+
+          {/* Local-dev-only alternative to Google — seeded owner@jaas.local /
+              admin@jaas.local accounts behind one shared password (see
+              auth.ts's "dev-login" Credentials provider). The backend
+              rejects this entirely unless JAAS_DEV_LOGIN_PASSWORD is set,
+              so this form is harmless to leave visible when it isn't. */}
+          <form
+            action={async (formData: FormData) => {
+              "use server";
+              try {
+                await signIn("dev-login", {
+                  email: formData.get("email"),
+                  password: formData.get("password"),
+                  redirectTo: "/skills",
+                });
+              } catch (err) {
+                if (err instanceof AuthError) {
+                  redirect(`/login?error=${err.type}`);
+                }
+                throw err;
+              }
+            }}
+            className="space-y-2"
+          >
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground" htmlFor="login-email">
+                Email
+              </label>
+              <Input id="login-email" name="email" type="email" placeholder="owner@jaas.local" required />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground" htmlFor="login-password">
+                Password
+              </label>
+              <Input id="login-password" name="password" type="password" placeholder="••••••••" required />
+            </div>
+            <Button type="submit" variant="outline" className="w-full">
+              Sign in with email
+            </Button>
+            <p className="text-center text-[11px] text-muted-foreground">
+              Local development accounts — not for production use.
+            </p>
           </form>
         </CardContent>
       </Card>

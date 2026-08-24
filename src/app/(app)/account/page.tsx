@@ -22,7 +22,7 @@ function initials(name: string): string {
  * session (Phase 1) plus tenant memberships (Phase 6). */
 export default async function AccountPage() {
   const session = await auth();
-  const user = session?.runeUser;
+  const user = session?.jaasUser;
 
   return (
     <div className="w-full space-y-6">
@@ -61,8 +61,8 @@ export default async function AccountPage() {
             <CardTitle className="text-base">Tenants</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {session?.runeTenants?.length ? (
-              session.runeTenants.map((tenant) => (
+            {session?.jaasTenants?.length ? (
+              session.jaasTenants.map((tenant) => (
                 <Link
                   key={tenant.id}
                   href={`/tenants/${tenant.id}/members`}
@@ -70,7 +70,7 @@ export default async function AccountPage() {
                 >
                   <span
                     className={
-                      tenant.id === session.runeActiveTenantId
+                      tenant.id === session.jaasActiveTenantId
                         ? "font-medium text-foreground"
                         : "text-foreground"
                     }

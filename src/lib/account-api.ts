@@ -1,8 +1,8 @@
 import "server-only";
 
-import { runeFetch } from "./rune-api";
-import type { PatSummaryResponse } from "./rune-api-types";
+import { jaasFetch } from "./jaas-api";
+import type { PatSummaryResponse } from "./jaas-api-types";
 
 export async function listPats(): Promise<PatSummaryResponse[]> {
-  return runeFetch<PatSummaryResponse[]>("/api/v1/account/tokens");
+  return jaasFetch<PatSummaryResponse[]>("/api/v1/account/tokens");
 }

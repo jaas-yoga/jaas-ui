@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Single-point process manager for the full rune stack, run from the UI
-# repo: this app's own Next.js dev server, the rune-registry backend API
-# (a separate repo/codebase — see RUNE_BACKEND_DIR below), and the
-# standalone rune-guardrails service (also separate — see
-# RUNE_GUARDRAILS_DIR below), started/stopped together.
+# Single-point process manager for the full jaas stack, run from the UI
+# repo: this app's own Next.js dev server, the jaas-registry backend API
+# (a separate repo/codebase — see JAAS_BACKEND_DIR below), and the
+# standalone jaas-guardrails service (also separate — see
+# JAAS_GUARDRAILS_DIR below), started/stopped together.
 #
 #   ./run.sh            start all three (no-op for whichever is already running)
 #   ./run.sh start
@@ -13,7 +13,7 @@
 #   ./run.sh logs [api|web|guardrails]   tail one service's log (default: web)
 #
 # No service is invoked through its package-manager wrapper (`uv run
-# runectl`, `npm run dev`) — wrappers fork a child and return immediately,
+# jaasctl`, `npm run dev`) — wrappers fork a child and return immediately,
 # so `$!` would capture the wrapper's PID rather than the actual server's,
 # breaking stop/restart. Invoking each venv/node_modules entry point
 # directly makes `$!` the real process, which installs its own SIGTERM
@@ -31,36 +31,46 @@ NEXT_BIN="$SCRIPT_DIR/node_modules/.bin/next"
 # local-dev convenience for running the whole stack together from here.
 # Both default to sibling checkouts; override if yours live elsewhere, or
 # skip starting one by setting its DIR var to "".
-BACKEND_DIR="${RUNE_BACKEND_DIR-$SCRIPT_DIR/../jaas-skills}"
-RUNECTL="$BACKEND_DIR/.venv/bin/runectl"
-GUARDRAILS_DIR="${RUNE_GUARDRAILS_DIR-$SCRIPT_DIR/../rune_guardrail}"
-GUARDRAILS_BIN="$GUARDRAILS_DIR/.venv/bin/rune-guardrails"
+BACKEND_DIR="${JAAS_BACKEND_DIR-$SCRIPT_DIR/../jaas-skills}"
+JAASCTL="$BACKEND_DIR/.venv/bin/jaasctl"
+GUARDRAILS_DIR="${JAAS_GUARDRAILS_DIR-$SCRIPT_DIR/../jaas-guardrails}"
+GUARDRAILS_BIN="$GUARDRAILS_DIR/.venv/bin/jaas-guardrails"
 
-WEB_HOST="${RUNE_WEB_HOST:-0.0.0.0}"
-WEB_PORT="${RUNE_WEB_PORT:-3027}"
-API_HOST="${RUNE_HOST:-127.0.0.1}"
-API_PORT="${RUNE_PORT:-8027}"
-GUARDRAILS_HOST="${RUNE_GUARDRAILS_HOST:-127.0.0.1}"
-GUARDRAILS_PORT="${RUNE_GUARDRAILS_PORT:-8028}"
-STOP_TIMEOUT="${RUNE_STOP_TIMEOUT:-15}"   # seconds to wait for graceful shutdown before SIGKILL
+WEB_HOST="${JAAS_WEB_HOST:-0.0.0.0}"
+WEB_PORT="${JAAS_WEB_PORT:-3027}"
+API_HOST="${JAAS_HOST:-127.0.0.1}"
+API_PORT="${JAAS_PORT:-8027}"
+GUARDRAILS_HOST="${JAAS_GUARDRAILS_HOST:-127.0.0.1}"
+GUARDRAILS_PORT="${JAAS_GUARDRAILS_PORT:-8028}"
+STOP_TIMEOUT="${JAAS_STOP_TIMEOUT:-15}"   # seconds to wait for graceful shutdown before SIGKILL
 
 # The API talks to the guardrails service over HTTP only — never
 # in-process. Point it at the instance this script manages unless already
 # overridden.
-export RUNE_GUARDRAILS_SERVICE_URL="${RUNE_GUARDRAILS_SERVICE_URL:-http://$GUARDRAILS_HOST:$GUARDRAILS_PORT}"
+export JAAS_GUARDRAILS_SERVICE_URL="${JAAS_GUARDRAILS_SERVICE_URL:-http://$GUARDRAILS_HOST:$GUARDRAILS_PORT}"
 
 # Falls back to AUTH_GOOGLE_ID from THIS repo's own .env.local — no longer
 # a cross-repo file reach-in, since run.sh and .env.local now live
 # together — so the backend validates Google sign-in tokens against the
 # same dedicated OAuth client this app uses, without copy-pasting the
-# client id a second time. RUNE_GOOGLE_CLIENT_ID (if already set) always
+# client id a second time. JAAS_GOOGLE_CLIENT_ID (if already set) always
 # wins.
-if [ -z "${RUNE_GOOGLE_CLIENT_ID:-}" ] && [ -n "${AUTH_GOOGLE_ID:-}" ]; then
-    RUNE_GOOGLE_CLIENT_ID="$AUTH_GOOGLE_ID"
-elif [ -z "${RUNE_GOOGLE_CLIENT_ID:-}" ] && [ -f "$SCRIPT_DIR/.env.local" ]; then
-    RUNE_GOOGLE_CLIENT_ID="$(sed -n 's/^AUTH_GOOGLE_ID=//p' "$SCRIPT_DIR/.env.local" | tail -1)"
+if [ -z "${JAAS_GOOGLE_CLIENT_ID:-}" ] && [ -n "${AUTH_GOOGLE_ID:-}" ]; then
+    JAAS_GOOGLE_CLIENT_ID="$AUTH_GOOGLE_ID"
+elif [ -z "${JAAS_GOOGLE_CLIENT_ID:-}" ] && [ -f "$SCRIPT_DIR/.env.local" ]; then
+    JAAS_GOOGLE_CLIENT_ID="$(sed -n 's/^AUTH_GOOGLE_ID=//p' "$SCRIPT_DIR/.env.local" | tail -1)"
 fi
-export RUNE_GOOGLE_CLIENT_ID="${RUNE_GOOGLE_CLIENT_ID:-}"
+export JAAS_GOOGLE_CLIENT_ID="${JAAS_GOOGLE_CLIENT_ID:-}"
+
+# Same fallback for the dev-login shared password (auth.ts's "dev-login"
+# Credentials provider / authn/service.py's _DEV_LOGIN_USERS) — read from
+# this repo's own .env.local unless already set. Left unset (the backend's
+# default), dev-login stays disabled server-side regardless of this
+# provider being listed in the frontend.
+if [ -z "${JAAS_DEV_LOGIN_PASSWORD:-}" ] && [ -f "$SCRIPT_DIR/.env.local" ]; then
+    JAAS_DEV_LOGIN_PASSWORD="$(sed -n 's/^JAAS_DEV_LOGIN_PASSWORD=//p' "$SCRIPT_DIR/.env.local" | tail -1)"
+fi
+export JAAS_DEV_LOGIN_PASSWORD="${JAAS_DEV_LOGIN_PASSWORD:-}"
 
 mkdir -p "$RUN_DIR"
 
@@ -76,31 +86,37 @@ Usage: $(basename "$0") [start|stop|restart|status|logs [api|web|guardrails]]
   logs [api|web|guardrails]  tail one service's log file (default: web)
 
 Environment overrides:
-  RUNE_BACKEND_DIR   path to the rune-registry backend repo (default:
+  JAAS_BACKEND_DIR   path to the jaas-registry backend repo (default:
                      ../jaas-skills, a sibling checkout). Set to "" to skip
-                     starting the api — see also RUNE_API_URL in .env.local.
-  RUNE_GUARDRAILS_DIR   path to the standalone rune-guardrails service repo
-                        (default: ../rune_guardrail, a sibling checkout).
+                     starting the api — see also JAAS_API_URL in .env.local.
+  JAAS_GUARDRAILS_DIR   path to the standalone jaas-guardrails service repo
+                        (default: ../jaas-guardrails, a sibling checkout).
                         Set to "" to skip starting it — the API degrades
                         gracefully (503 only on the specific routes that
                         need it) rather than failing to start.
-  RUNE_WEB_HOST      network interface(s) to bind (default 0.0.0.0 — Next's
+  JAAS_WEB_HOST      network interface(s) to bind (default 0.0.0.0 — Next's
                      own default, covers 127.0.0.1). This is independent of
                      which URL you open in the browser: always use
                      http://localhost:3027, since Google's OAuth redirect
                      URI matching treats "localhost" and "127.0.0.1" as
                      different hosts, and only "localhost" is registered.
-  RUNE_WEB_PORT      web port to bind (default 3027)
-  RUNE_HOST          api host to bind (default 127.0.0.1)
-  RUNE_PORT          api port to bind (default 8027)
-  RUNE_GUARDRAILS_HOST  guardrails service host to bind (default 127.0.0.1)
-  RUNE_GUARDRAILS_PORT  guardrails service port to bind (default 8028)
-  RUNE_STOP_TIMEOUT  seconds to wait for graceful shutdown before SIGKILL (default 15)
-  RUNE_GOOGLE_CLIENT_ID  Google OAuth client id for the API to validate sign-in
+  JAAS_WEB_PORT      web port to bind (default 3027)
+  JAAS_HOST          api host to bind (default 127.0.0.1)
+  JAAS_PORT          api port to bind (default 8027)
+  JAAS_GUARDRAILS_HOST  guardrails service host to bind (default 127.0.0.1)
+  JAAS_GUARDRAILS_PORT  guardrails service port to bind (default 8028)
+  JAAS_STOP_TIMEOUT  seconds to wait for graceful shutdown before SIGKILL (default 15)
+  JAAS_GOOGLE_CLIENT_ID  Google OAuth client id for the API to validate sign-in
                          tokens against; falls back to this repo's own
                          .env.local's AUTH_GOOGLE_ID if unset, so it stays
                          in sync with this app's dedicated OAuth client
                          automatically.
+  JAAS_DEV_LOGIN_PASSWORD  Shared password for the seeded owner@jaas.local /
+                         admin@jaas.local accounts (the "Sign in with email"
+                         option on /login) — a Google-free alternative for
+                         local dev. Falls back to this repo's own
+                         .env.local. Unset (the default) disables dev-login
+                         entirely on the backend.
 EOF
 }
 
@@ -180,26 +196,26 @@ stop_service() {
 
 start_guardrails() {
     if [ -z "$GUARDRAILS_DIR" ]; then
-        echo "[guardrails] skipped — RUNE_GUARDRAILS_DIR is empty"
+        echo "[guardrails] skipped — JAAS_GUARDRAILS_DIR is empty"
         return 0
     fi
     if [ ! -d "$GUARDRAILS_DIR" ]; then
         echo "[guardrails] skipped — no repo found at $GUARDRAILS_DIR"
-        echo "             (clone https://github.com/balakrishna-maduru/rune-guardrails-catalog there, or set RUNE_GUARDRAILS_DIR)"
+        echo "             (clone https://github.com/balakrishna-maduru/jaas-guardrails-catalog there, or set JAAS_GUARDRAILS_DIR)"
         return 0
     fi
 
     require_uv
 
     local pid
-    if pid="$(running_pid guardrails rune-guardrails)"; then
+    if pid="$(running_pid guardrails jaas-guardrails)"; then
         echo "[guardrails] already running (pid $pid) at http://$GUARDRAILS_HOST:$GUARDRAILS_PORT"
         return 0
     fi
 
     if port_in_use_by_someone_else "$GUARDRAILS_PORT"; then
         echo "error: [guardrails] port $GUARDRAILS_PORT is already in use by another process (not managed by this script)." >&2
-        echo "       stop that process first, or set RUNE_GUARDRAILS_PORT to a free port." >&2
+        echo "       stop that process first, or set JAAS_GUARDRAILS_PORT to a free port." >&2
         exit 1
     fi
 
@@ -209,13 +225,13 @@ start_guardrails() {
     fi
 
     echo "[guardrails] starting on http://$GUARDRAILS_HOST:$GUARDRAILS_PORT ..."
-    RUNE_GUARDRAILS_HOST="$GUARDRAILS_HOST" RUNE_GUARDRAILS_PORT="$GUARDRAILS_PORT" \
+    JAAS_GUARDRAILS_HOST="$GUARDRAILS_HOST" JAAS_GUARDRAILS_PORT="$GUARDRAILS_PORT" \
         nohup "$GUARDRAILS_BIN" >>"$(log_file guardrails)" 2>&1 &
     local new_pid=$!
     echo "$new_pid" >"$(pid_file guardrails)"
 
     sleep 1
-    if ! pid_matches "$new_pid" rune-guardrails; then
+    if ! pid_matches "$new_pid" jaas-guardrails; then
         echo "error: [guardrails] exited immediately, see $(log_file guardrails)" >&2
         rm -f "$(pid_file guardrails)"
         exit 1
@@ -225,30 +241,30 @@ start_guardrails() {
 
 start_api() {
     if [ -z "$BACKEND_DIR" ]; then
-        echo "[api] skipped — RUNE_BACKEND_DIR is empty"
+        echo "[api] skipped — JAAS_BACKEND_DIR is empty"
         return 0
     fi
     if [ ! -d "$BACKEND_DIR" ]; then
         echo "[api] skipped — no repo found at $BACKEND_DIR"
-        echo "       (clone the jaas-skills backend there, or set RUNE_BACKEND_DIR)"
+        echo "       (clone the jaas-skills backend there, or set JAAS_BACKEND_DIR)"
         return 0
     fi
 
     require_uv
 
     local pid
-    if pid="$(running_pid api runectl)"; then
+    if pid="$(running_pid api jaasctl)"; then
         echo "[api] already running (pid $pid) at http://$API_HOST:$API_PORT"
         return 0
     fi
 
     if port_in_use_by_someone_else "$API_PORT"; then
         echo "error: [api] port $API_PORT is already in use by another process (not managed by this script)." >&2
-        echo "       stop that process first, or set RUNE_PORT to a free port." >&2
+        echo "       stop that process first, or set JAAS_PORT to a free port." >&2
         exit 1
     fi
 
-    if [ ! -x "$RUNECTL" ]; then
+    if [ ! -x "$JAASCTL" ]; then
         echo "[api] venv entry point missing, running 'uv sync' in $BACKEND_DIR first..."
         (cd "$BACKEND_DIR" && uv sync)
     fi
@@ -261,14 +277,14 @@ start_api() {
     # silently ends up nested under jaas-ui instead of jaas-skills.
     (
         cd "$BACKEND_DIR"
-        nohup "$RUNECTL" serve --host "$API_HOST" --port "$API_PORT" >>"$(log_file api)" 2>&1 &
+        nohup "$JAASCTL" serve --host "$API_HOST" --port "$API_PORT" >>"$(log_file api)" 2>&1 &
         echo $! >"$(pid_file api)"
     )
     local new_pid
     new_pid="$(cat "$(pid_file api)" 2>/dev/null || true)"
 
     sleep 1
-    if ! pid_matches "$new_pid" runectl; then
+    if ! pid_matches "$new_pid" jaasctl; then
         echo "error: [api] exited immediately, see $(log_file api)" >&2
         rm -f "$(pid_file api)"
         exit 1
@@ -287,7 +303,7 @@ start_web() {
 
     if port_in_use_by_someone_else "$WEB_PORT"; then
         echo "error: [web] port $WEB_PORT is already in use by another process (not managed by this script)." >&2
-        echo "       stop that process first, or set RUNE_WEB_PORT to a free port." >&2
+        echo "       stop that process first, or set JAAS_WEB_PORT to a free port." >&2
         exit 1
     fi
 
@@ -321,8 +337,8 @@ do_start() {
 
 do_stop() {
     stop_service web "next dev"
-    stop_service api runectl
-    stop_service guardrails rune-guardrails
+    stop_service api jaasctl
+    stop_service guardrails jaas-guardrails
 }
 
 do_status() {
@@ -333,14 +349,14 @@ do_status() {
         echo "[web] not running"
     fi
     if [ -n "$BACKEND_DIR" ] && [ -d "$BACKEND_DIR" ]; then
-        if pid="$(running_pid api runectl)"; then
+        if pid="$(running_pid api jaasctl)"; then
             echo "[api] running (pid $pid) at http://$API_HOST:$API_PORT"
         else
             echo "[api] not running"
         fi
     fi
     if [ -n "$GUARDRAILS_DIR" ] && [ -d "$GUARDRAILS_DIR" ]; then
-        if pid="$(running_pid guardrails rune-guardrails)"; then
+        if pid="$(running_pid guardrails jaas-guardrails)"; then
             echo "[guardrails] running (pid $pid) at http://$GUARDRAILS_HOST:$GUARDRAILS_PORT"
         else
             echo "[guardrails] not running"

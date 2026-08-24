@@ -1,4 +1,4 @@
-import type { SearchResultItem } from "./rune-api-types";
+import type { SearchResultItem } from "./jaas-api-types";
 
 /** ui-design.md §10.2 filter chips. */
 export type VisibilityFilter = "all" | "public" | "mine" | "tenant" | "shared-with-me";

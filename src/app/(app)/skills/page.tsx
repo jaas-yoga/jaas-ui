@@ -15,8 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RuneApiRequestError } from "@/lib/rune-api";
-import type { SearchResultItem } from "@/lib/rune-api-types";
+import { JaasApiRequestError } from "@/lib/jaas-api";
+import type { SearchResultItem } from "@/lib/jaas-api-types";
 import { searchSkills } from "@/lib/skills-api";
 import {
   matchesVisibilityFilter,
@@ -50,7 +50,7 @@ export default async function SkillsBrowsePage({
   const category = Array.isArray(params.category) ? params.category[0] : params.category;
 
   const session = await auth();
-  const caller = { userId: session?.runeUser?.id, tenantId: session?.runeActiveTenantId };
+  const caller = { userId: session?.jaasUser?.id, tenantId: session?.jaasActiveTenantId };
 
   let items: SearchResultItem[] = [];
   let loadError: string | null = null;
@@ -59,7 +59,7 @@ export default async function SkillsBrowsePage({
     items = result.items.filter((item) => matchesVisibilityFilter(item, activeFilter, caller));
   } catch (err) {
     loadError =
-      err instanceof RuneApiRequestError
+      err instanceof JaasApiRequestError
         ? `${err.code}: ${err.message}`
         : "Could not reach the registry API.";
   }

@@ -1,6 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 
-import type { ValidationResultResponse } from "@/lib/rune-api-types";
+import type { ValidationResultResponse } from "@/lib/jaas-api-types";
 
 /** Sibling to ValidationResultsPanel, not an edit of it — warnings are
  * non-blocking (design.md §4.5) so they get their own, lower-urgency

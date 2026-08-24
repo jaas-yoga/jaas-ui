@@ -11,8 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createDraftAction } from "@/lib/actions";
-import { RuneApiRequestError } from "@/lib/rune-api";
-import type { SkillMetadataResponse } from "@/lib/rune-api-types";
+import { JaasApiRequestError } from "@/lib/jaas-api";
+import type { SkillMetadataResponse } from "@/lib/jaas-api-types";
 import { getSkillMetadata, listShareGrants, listSkillFiles } from "@/lib/skills-api";
 
 function toBadgeKind(
@@ -36,14 +36,14 @@ export default async function SkillVersionDetailPage({
   try {
     entry = await getSkillMetadata(id, version);
   } catch (err) {
-    if (err instanceof RuneApiRequestError && err.status === 404) {
+    if (err instanceof JaasApiRequestError && err.status === 404) {
       notFound();
     }
     throw err;
   }
 
   const session = await auth();
-  const caller = { userId: session?.runeUser?.id, tenantId: session?.runeActiveTenantId };
+  const caller = { userId: session?.jaasUser?.id, tenantId: session?.jaasActiveTenantId };
   const isOwner = caller.userId === entry.ownerUser;
   const grants = isOwner ? await listShareGrants(id) : [];
   const path = `/skills/${id}/versions/${version}`;

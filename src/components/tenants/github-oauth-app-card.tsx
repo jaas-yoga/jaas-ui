@@ -7,7 +7,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { removeGithubOAuthAppAction, saveGithubOAuthAppAction } from "@/lib/actions";
-import type { GithubOAuthAppResponse } from "@/lib/rune-api-types";
+import type { GithubOAuthAppResponse } from "@/lib/jaas-api-types";
 
 /** Each tenant registers its own GitHub OAuth App here — there is no
  * shared, deployment-wide app (authn/github_oauth_apps.py). This gates

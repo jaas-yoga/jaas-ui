@@ -1,14 +1,22 @@
-import type { TenantMembershipResponse, UserResponse } from "@/lib/rune-api-types";
+import type { AuthResponse, TenantMembershipResponse, UserResponse } from "@/lib/jaas-api-types";
 
 /** ui-design.md §4.3 — the registry's own tokens/claims, carried inside
  * Auth.js's encrypted session (never sent to the browser as a bare JWT). */
 declare module "next-auth" {
   interface Session {
-    runeAccessToken?: string;
-    runeUser?: UserResponse;
-    runeTenants?: TenantMembershipResponse[];
-    runeActiveTenantId?: string;
-    runeError?: "RefreshFailed" | "SignInFailed";
+    jaasAccessToken?: string;
+    jaasUser?: UserResponse;
+    jaasTenants?: TenantMembershipResponse[];
+    jaasActiveTenantId?: string;
+    jaasError?: "RefreshFailed" | "SignInFailed";
+  }
+
+  // The dev-login Credentials provider's authorize() already did the full
+  // POST /api/v1/auth/login exchange (unlike Google, which only hands the
+  // jwt() callback an id_token to exchange) — it smuggles the result through
+  // here so jwt() can pick it up on the `user` param without a second round trip.
+  interface User {
+    jaasAuthResponse?: AuthResponse;
   }
 }
 
@@ -18,12 +26,12 @@ declare module "next-auth" {
 // and lib/index.d.ts), so that's the module declaration merging must target.
 declare module "@auth/core/jwt" {
   interface JWT {
-    runeAccessToken?: string;
-    runeRefreshToken?: string;
-    runeAccessTokenExpiresAtMs?: number;
-    runeUser?: UserResponse;
-    runeTenants?: TenantMembershipResponse[];
-    runeActiveTenantId?: string;
-    runeError?: "RefreshFailed" | "SignInFailed";
+    jaasAccessToken?: string;
+    jaasRefreshToken?: string;
+    jaasAccessTokenExpiresAtMs?: number;
+    jaasUser?: UserResponse;
+    jaasTenants?: TenantMembershipResponse[];
+    jaasActiveTenantId?: string;
+    jaasError?: "RefreshFailed" | "SignInFailed";
   }
 }
