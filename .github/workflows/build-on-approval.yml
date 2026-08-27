@@ -1,0 +1,28 @@
+name: Build on PR approval
+
+# Deliberately separate from any push/PR-triggered lint-test workflow: this
+# fires only once a PR review is submitted, so the (comparatively expensive)
+# production build doesn't run on every push while a PR is still in draft.
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      # pull_request_review does not check out the PR head by default (it
+      # resolves to the base branch) — pin explicitly to the reviewed commit.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build
