@@ -3,6 +3,10 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Traces only the files each page actually needs into .next/standalone,
+  // so the production Docker image doesn't need node_modules copied in
+  // wholesale — see deploy/README.md.
+  output: "standalone",
   // Disambiguate the workspace root: an unrelated empty package-lock.json in
   // the user's home directory would otherwise get inferred as the root.
   turbopack: {

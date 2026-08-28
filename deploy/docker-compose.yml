@@ -1,0 +1,101 @@
+# Images are published to Docker Hub as jaasyoga/jaas-{ui,registry,guardrails}
+# (public). On the VM you don't need the source repos at all — just this
+# file plus .env — run `docker compose pull && docker compose up -d`.
+#
+# The `build:` blocks below are kept alongside `image:` purely for local
+# iteration: with jaas-ui, jaas-skills, and jaas-guardrails checked out as
+# sibling directories (the same convention jaas-ui/run.sh uses for local dev
+# — see JAAS_BACKEND_DIR/JAAS_GUARDRAILS_DIR there), `docker compose build`
+# rebuilds from source and tags the result with these same image names.
+#
+#   cp .env.example .env   # fill in real values
+#   docker compose pull && docker compose up -d       # deploy published images
+#   docker compose up -d --build                      # or build from source
+
+services:
+  web:
+    image: jaasyoga/jaas-ui:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3027"
+      HOSTNAME: "0.0.0.0"
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: https://${DOMAIN}
+      AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID}
+      AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET}
+      # Server-side only (auth.ts's Google-token exchange) — talks to the
+      # api container directly over the internal network, never through
+      # Caddy/the public internet.
+      JAAS_API_URL: http://api:8027
+      JAAS_DEV_LOGIN_PASSWORD: ${JAAS_DEV_LOGIN_PASSWORD:-}
+    depends_on:
+      - api
+    networks: [jaas]
+
+  api:
+    image: jaasyoga/jaas-registry:latest
+    build:
+      context: ../../jaas-skills
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      JAAS_ENVIRONMENT: production
+      # Overrides config.py's insecure "dev-only-shared-secret" default —
+      # required in production.
+      JAAS_JWT_SECRET: ${JAAS_JWT_SECRET}
+      JAAS_GOOGLE_CLIENT_ID: ${AUTH_GOOGLE_ID}
+      JAAS_DEV_LOGIN_PASSWORD: ${JAAS_DEV_LOGIN_PASSWORD:-}
+      JAAS_GUARDRAILS_SERVICE_URL: http://guardrails:8028
+      # Browser-facing: GitHub's OAuth redirect hits this container
+      # directly (via Caddy's api. site block), not through jaas-ui.
+      JAAS_GITHUB_OAUTH_REDIRECT_URI: https://${API_DOMAIN}/api/v1/github/callback
+      JAAS_WEB_APP_URL: https://${DOMAIN}
+    volumes:
+      # Persists storage_root/policy_dir (.local_registry/*, relative to
+      # the container's /app WORKDIR) across restarts and redeploys — this
+      # is the only stateful data in the whole stack.
+      - registry_data:/app/.local_registry
+    depends_on:
+      - guardrails
+    networks: [jaas]
+
+  guardrails:
+    image: jaasyoga/jaas-guardrails:latest
+    build:
+      context: ../../jaas-guardrails
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    # No public exposure and no ports published to the host — reachable
+    # only from api over the internal network, matching the offline-only,
+    # server-to-server-only design of this service.
+    networks: [jaas]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+    networks: [jaas]
+
+networks:
+  jaas:
+
+volumes:
+  registry_data:
+  caddy_data:
+  caddy_config:
