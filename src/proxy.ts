@@ -25,5 +25,10 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Excludes _next internals plus any static image asset (icon.png/apple-icon
+  // - the Next.js icon convention that replaced favicon.ico - and public/
+  // assets like /brand/*) so unauthenticated requests for them don't get
+  // redirected to /login. Previously only favicon.ico was excluded, which
+  // silently broke once other image assets (the brand mark) were added.
+  matcher: ["/((?!_next/static|_next/image|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg)$).*)"],
 };

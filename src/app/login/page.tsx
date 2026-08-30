@@ -1,5 +1,5 @@
-import { BrainCircuit, Sparkles } from "lucide-react";
 import { AuthError } from "next-auth";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 
 import { auth, signIn } from "@/auth";
@@ -40,14 +40,8 @@ export default async function LoginPage({
 
       <Card className="relative w-full max-w-sm border-border/60 shadow-xl shadow-brand/5">
         <CardHeader className="items-center text-center">
-          <div className="relative mb-1">
-            <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand/70 shadow-lg shadow-brand/30">
-              <BrainCircuit className="size-7 text-brand-foreground" />
-            </div>
-            <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-background ring-2 ring-background">
-              <Sparkles className="size-3.5 text-brand" />
-            </span>
-          </div>
+          <Image src="/brand/jaas-mark.png" alt="" width={64} height={64} className="mb-1" priority />
+
           <CardTitle className="text-xl">JaaS Skills</CardTitle>
           <CardDescription>Discover, share, and publish AI-agent skill packages.</CardDescription>
         </CardHeader>
