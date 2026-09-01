@@ -54,10 +54,23 @@ services:
       # directly (via Caddy's api. site block), not through jaas-ui.
       JAAS_GITHUB_OAUTH_REDIRECT_URI: https://${API_DOMAIN}/api/v1/github/callback
       JAAS_WEB_APP_URL: https://${DOMAIN}
+      # Object storage backend (storage/factory.py). Defaults to "local" —
+      # the registry_data volume below — so these are all optional; set
+      # JAAS_STORAGE_BACKEND=s3 to point published skill artifacts at OCI
+      # Object Storage's S3 Compatibility API (or any other S3-compatible
+      # bucket) instead. See deploy/README.md.
+      JAAS_STORAGE_BACKEND: ${JAAS_STORAGE_BACKEND:-local}
+      JAAS_STORAGE_S3_BUCKET: ${JAAS_STORAGE_S3_BUCKET:-}
+      JAAS_STORAGE_S3_ENDPOINT_URL: ${JAAS_STORAGE_S3_ENDPOINT_URL:-}
+      JAAS_STORAGE_S3_REGION: ${JAAS_STORAGE_S3_REGION:-us-east-1}
+      JAAS_STORAGE_S3_ACCESS_KEY_ID: ${JAAS_STORAGE_S3_ACCESS_KEY_ID:-}
+      JAAS_STORAGE_S3_SECRET_ACCESS_KEY: ${JAAS_STORAGE_S3_SECRET_ACCESS_KEY:-}
     volumes:
-      # Persists storage_root/policy_dir (.local_registry/*, relative to
-      # the container's /app WORKDIR) across restarts and redeploys — this
-      # is the only stateful data in the whole stack.
+      # Persists policy_dir (signing key, custom guardrail rules) always,
+      # plus storage_root when JAAS_STORAGE_BACKEND=local (the default) —
+      # both live under .local_registry/*, relative to the container's
+      # /app WORKDIR. Harmless to keep mounted even when the s3 backend is
+      # active: storage_root just goes unused.
       - registry_data:/app/.local_registry
     depends_on:
       - guardrails

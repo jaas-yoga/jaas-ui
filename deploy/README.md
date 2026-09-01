@@ -106,6 +106,47 @@ authorized redirect URI:
 https://<DOMAIN>/api/auth/callback/google
 ```
 
+## 8. (Optional) Move object storage off the local volume
+
+By default, published skill artifacts live in the `registry_data` Docker
+volume on this one VM — fine to start, but it's tied to this instance and
+isn't backed up. OCI's Always Free tier includes 20 GB of Object Storage
+with an S3-compatible API, and `jaas-registry` can talk to it directly.
+
+`.env` on the VM is regenerated from GitHub repo secrets/variables on every
+CD deploy (see `.github/workflows/docker-publish.yml`), so this is
+configured there, not by hand-editing `.env` on the VM — that edit would
+just be overwritten on the next push to `main`.
+
+1. **Console → Storage → Buckets → Create Bucket** (Standard tier, in your
+   tenancy's home region). Note the bucket name and the **namespace**
+   string shown at the top of the Buckets page.
+2. **Console → your username (top right) → Customer Secret Keys → Generate
+   Secret Key**. Save the Access Key and Secret Key (the secret is shown
+   once, at generation time only).
+3. In each of the three repos' **Settings → Secrets and variables →
+   Actions** (same place `DEPLOY_HOST`/`AUTH_SECRET`/etc. already live —
+   only the deploy job's SSH step actually reads these, but keep all three
+   repos in sync since any of them can trigger it), add:
+
+   | Name | Kind | Value |
+   |---|---|---|
+   | `JAAS_STORAGE_BACKEND` | variable | `s3` |
+   | `JAAS_STORAGE_S3_BUCKET` | variable | your bucket name |
+   | `JAAS_STORAGE_S3_ENDPOINT_URL` | variable | `https://<namespace>.compat.objectstorage.<region>.oraclecloud.com` |
+   | `JAAS_STORAGE_S3_REGION` | variable | e.g. `us-ashburn-1` |
+   | `JAAS_STORAGE_S3_ACCESS_KEY_ID` | secret | access key from step 2 |
+   | `JAAS_STORAGE_S3_SECRET_ACCESS_KEY` | secret | secret key from step 2 |
+
+4. Trigger a redeploy — push to `main`, or run `docker-publish.yml` via
+   **Actions → Run workflow** in any of the three repos.
+
+New publishes go straight to the bucket; nothing already in the
+`registry_data` volume migrates automatically. `policy_dir` (the signing
+key, custom guardrail rules) always stays on the volume regardless of this
+setting — only published artifacts move. Leaving all of the above unset
+keeps the local-volume default with no change in behavior.
+
 ## Redeploying after changes
 
 Once new images have been built and pushed to Docker Hub:
