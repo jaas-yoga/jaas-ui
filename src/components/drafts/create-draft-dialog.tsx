@@ -1,12 +1,20 @@
 "use client";
 
+import { GitBranch, Laptop, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
 import { parseGithubRepoUrl } from "@/components/github/github-pickers";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import {
   createDraftAction,
   createDraftWithGitAction,
@@ -29,13 +38,15 @@ function suggestWorkingBranch(repoFullName: string): string {
   return `jaas/draft/${repoFullName.split("/")[1]}-${suffix}`;
 }
 
-/** Replaces the plain `<form action={createDraftAction}>` button — "Create
- * Skill" now expands this panel inline, in the page's own flow (no modal).
- * Three chained dropdowns: where the draft lives, then (only when GitHub is
- * chosen) which repo — restricted to repos already registered under
- * Connected Repos (Tenant Settings → Repositories), not a live search over
- * the whole GitHub account — then which branch to target, defaulting to the
- * repo's default branch but changeable when the repo has others. */
+/** A centered Dialog, matching every other "Create X" flow in the app
+ * (CreateTenantDialog, CreatePatDialog, InviteMemberDialog) rather than
+ * expanding an inline panel in the page's own flow — the earlier inline
+ * approach read as a floating, disconnected fragment once the page had
+ * empty space around it. Destination is two selectable cards (only ever
+ * two options, so a picker reads faster than a dropdown); repo — restricted
+ * to repos already registered under Connected Repos (Tenant Settings →
+ * Repositories), not a live search over the whole GitHub account — and
+ * branch stay as Selects underneath, only shown once GitHub is chosen. */
 export function CreateDraftDialog({
   label,
   tenantId,
@@ -111,6 +122,13 @@ export function CreateDraftDialog({
     reset();
   }
 
+  function selectDestination(next: Destination) {
+    setDestination(next);
+    setSelectedRepoUrl("");
+    setBranches(null);
+    setSelectedBranch("");
+  }
+
   function handleCreateLocal() {
     setError(null);
     startTransition(async () => {
@@ -145,64 +163,92 @@ export function CreateDraftDialog({
     });
   }
 
-  if (!open) {
-    return <Button onClick={() => setOpen(true)}>{label}</Button>;
-  }
-
   return (
-    <Card className="w-full max-w-4xl">
-      <CardContent className="space-y-3 pt-6">
-        {emptyRepoConfirm ? (
-          <div className="flex flex-nowrap items-end gap-3">
-            <div className="w-52 space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                {selectedRepoParsed?.owner}/{selectedRepoParsed?.name} is empty — branch name
-              </label>
-              <Input
-                value={selectedBranch}
-                onChange={(e) => setSelectedBranch(e.target.value)}
-                placeholder="main"
-                className="font-mono"
-                autoFocus
-              />
-            </div>
-            <div className="ml-auto flex shrink-0 gap-2">
-              <Button variant="outline" onClick={() => setEmptyRepoConfirm(false)} disabled={pending}>
-                Cancel
-              </Button>
-              <Button
-                onClick={() => handleCreateGithub(true)}
-                disabled={pending || !selectedBranch.trim()}
-              >
-                Create branch & start
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-nowrap items-end gap-3">
-            <div className="w-52 space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                Where should this draft live?
-              </label>
-              <Select
-                value={destination}
-                onValueChange={(v) => {
-                  setDestination(v as Destination);
-                  setSelectedRepoUrl("");
-                  setBranches(null);
-                  setSelectedBranch("");
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="local">Local only</SelectItem>
-                  <SelectItem value="github" disabled={!canUseGithub}>
-                    GitHub repo
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+    <>
+      <Button onClick={() => setOpen(true)}>{label}</Button>
+      <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : close())}>
+        <DialogContent className="max-w-lg">
+          {emptyRepoConfirm ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>
+                  {selectedRepoParsed?.owner}/{selectedRepoParsed?.name} is empty
+                </DialogTitle>
+                <DialogDescription>
+                  Name the branch this draft&apos;s first commit will create.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground" htmlFor="empty-repo-branch">
+                  Branch name
+                </label>
+                <Input
+                  id="empty-repo-branch"
+                  value={selectedBranch}
+                  onChange={(e) => setSelectedBranch(e.target.value)}
+                  placeholder="main"
+                  className="font-mono"
+                  autoFocus
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEmptyRepoConfirm(false)} disabled={pending}>
+                  Back
+                </Button>
+                <Button
+                  onClick={() => handleCreateGithub(true)}
+                  disabled={pending || !selectedBranch.trim()}
+                >
+                  {pending && <Loader2 className="size-4 animate-spin" />}
+                  Create branch & start
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Create a new skill draft</DialogTitle>
+                <DialogDescription>
+                  Start from scratch, or connect it to a GitHub repo you&apos;ve already registered.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => selectDestination("local")}
+                  className={cn(
+                    "flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors",
+                    destination === "local"
+                      ? "border-brand bg-brand/5 ring-1 ring-brand"
+                      : "border-border hover:border-brand/50",
+                  )}
+                >
+                  <Laptop className="size-5 text-brand" />
+                  <p className="text-sm font-medium text-foreground">Local only</p>
+                  <p className="text-xs text-muted-foreground">
+                    Work in the browser editor, publish when ready.
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  disabled={!canUseGithub}
+                  onClick={() => canUseGithub && selectDestination("github")}
+                  className={cn(
+                    "flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors",
+                    !canUseGithub && "cursor-not-allowed opacity-50",
+                    destination === "github"
+                      ? "border-brand bg-brand/5 ring-1 ring-brand"
+                      : canUseGithub && "border-border hover:border-brand/50",
+                  )}
+                >
+                  <GitBranch className="size-5 text-brand" />
+                  <p className="text-sm font-medium text-foreground">GitHub repo</p>
+                  <p className="text-xs text-muted-foreground">
+                    Commit to a connected repo branch.
+                  </p>
+                </button>
+              </div>
               {!canUseGithub && (
                 <p className="text-xs text-muted-foreground">
                   {tenantId ? (
@@ -222,84 +268,88 @@ export function CreateDraftDialog({
                   )}
                 </p>
               )}
-            </div>
 
-            {destination === "github" && (
-              <div className="w-52 space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Repository</label>
-                <Select
-                  value={selectedRepoUrl}
-                  onValueChange={(url) => {
-                    setSelectedRepoUrl(url);
-                    setBranches(null);
-                    setSelectedBranch("");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a connected repo…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {connectedRepoUrls.map((url) => {
-                      const parsed = parseGithubRepoUrl(url);
-                      return (
-                        <SelectItem key={url} value={url} className="font-mono">
-                          {parsed ? `${parsed.owner}/${parsed.name}` : url}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+              {destination === "github" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Repository</label>
+                    <Select
+                      value={selectedRepoUrl}
+                      onValueChange={(url) => {
+                        setSelectedRepoUrl(url);
+                        setBranches(null);
+                        setSelectedBranch("");
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a connected repo…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {connectedRepoUrls.map((url) => {
+                          const parsed = parseGithubRepoUrl(url);
+                          return (
+                            <SelectItem key={url} value={url} className="font-mono">
+                              {parsed ? `${parsed.owner}/${parsed.name}` : url}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {destination === "github" && selectedRepoUrl && (
-              <div className="w-44 space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Branch</label>
-                {branchesLoading ? (
-                  <p className="text-xs text-muted-foreground">Loading branches…</p>
-                ) : branches && branches.length > 0 ? (
-                  <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a branch…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {branches.map((branch) => (
-                        <SelectItem key={branch} value={branch} className="font-mono">
-                          {branch}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    No branches yet — the first commit will create one.
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div className="ml-auto flex shrink-0 gap-2">
-              <Button variant="outline" onClick={close} disabled={pending}>
-                Cancel
-              </Button>
-              {destination === "local" ? (
-                <Button onClick={handleCreateLocal} disabled={pending}>
-                  Create
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => handleCreateGithub(false)}
-                  disabled={pending || !selectedRepoUrl}
-                >
-                  Create
-                </Button>
+                  {selectedRepoUrl && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">Branch</label>
+                      {branchesLoading ? (
+                        <p className="text-xs text-muted-foreground">Loading branches…</p>
+                      ) : branches && branches.length > 0 ? (
+                        <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a branch…" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {branches.map((branch) => (
+                              <SelectItem key={branch} value={branch} className="font-mono">
+                                {branch}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          No branches yet — the first commit will create one.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
-            </div>
-          </div>
-        )}
 
-        {error && <p className="text-sm text-danger">{error}</p>}
-      </CardContent>
-    </Card>
+              {error && <p className="text-sm text-danger">{error}</p>}
+
+              <DialogFooter>
+                <Button variant="outline" onClick={close} disabled={pending}>
+                  Cancel
+                </Button>
+                {destination === "local" ? (
+                  <Button onClick={handleCreateLocal} disabled={pending}>
+                    {pending && <Loader2 className="size-4 animate-spin" />}
+                    Create
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => handleCreateGithub(false)}
+                    disabled={pending || !selectedRepoUrl}
+                  >
+                    {pending && <Loader2 className="size-4 animate-spin" />}
+                    Create
+                  </Button>
+                )}
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

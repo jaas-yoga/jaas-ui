@@ -81,6 +81,30 @@ export const {
   ],
   callbacks: {
     async jwt({ token, account, trigger, session, user }) {
+      // Profile tab: useSession().update({ jaasUser: { name, displayName } })
+      // lands here with trigger === "update". Deliberately only merges
+      // these two cosmetic fields, never the whole client-supplied object —
+      // `session` is unvalidated client input (same warning as the
+      // tenantId branch below), and id/email/pictureUrl are what ownership
+      // and identity checks elsewhere (e.g. `caller.userId ===
+      // entry.ownerUser`) key off of. A forged `session.jaasUser.id` must
+      // never be able to overwrite the real one from the actual sign-in
+      // exchange.
+      if (
+        trigger === "update" &&
+        token.jaasUser &&
+        session?.jaasUser &&
+        typeof session.jaasUser.name === "string"
+      ) {
+        token.jaasUser = {
+          ...token.jaasUser,
+          name: session.jaasUser.name,
+          displayName:
+            typeof session.jaasUser.displayName === "string" ? session.jaasUser.displayName : null,
+        };
+        return token;
+      }
+
       // ui-design.md §9 TenantSwitcher: useSession().update({ tenantId })
       // lands here with trigger === "update". Re-mint against the *current*
       // refresh token rather than trusting anything else in `session` —

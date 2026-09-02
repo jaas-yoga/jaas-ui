@@ -1,4 +1,4 @@
-import { KeyRound, LogOut, Settings, User as UserIcon } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 
 import { signOutAction } from "@/lib/actions";
@@ -50,17 +50,7 @@ export function AccountMenu({
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/account">
-            <UserIcon className="size-4" /> Account
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/account/appearance">
-            <Settings className="size-4" /> Appearance
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/account/tokens">
-            <KeyRound className="size-4" /> Personal Access Tokens
+            <Settings className="size-4" /> Settings
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

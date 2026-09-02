@@ -9,6 +9,11 @@ export type UserResponse = {
   email: string;
   name: string;
   pictureUrl: string | null;
+  displayName: string | null;
+};
+
+export type UpdateDisplayNameRequest = {
+  displayName: string | null;
 };
 
 export type TenantMembershipResponse = {

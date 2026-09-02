@@ -46,15 +46,7 @@ export default async function DraftsPage() {
         <EmptyState
           icon={FolderOpen}
           title="No drafts yet"
-          description="Start one from scratch, or open a published skill and choose New Version to fork it."
-          action={
-            <CreateDraftDialog
-              label="Create Your First Skill"
-              tenantId={tenantId}
-              githubConnected={githubConnected}
-              connectedRepoUrls={connectedRepoUrls}
-            />
-          }
+          description="Use Create Skill above to start one from scratch, or open a published skill and choose New Version to fork it."
         />
       ) : (
         <div className="space-y-2">

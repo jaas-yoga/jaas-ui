@@ -22,6 +22,7 @@ import type {
   SourceFilesResponse,
   TenantGuardrailPolicyResponse,
   TenantMembershipResponse,
+  UserResponse,
   ValidateCustomGuardrailRuleResponse,
   ValidationResultResponse,
 } from "@/lib/jaas-api-types";
@@ -396,6 +397,32 @@ export async function revokePatAction(patId: string): Promise<ActionResult> {
   }
   revalidatePath("/account/tokens");
   return { ok: true };
+}
+
+export type UpdateDisplayNameResult =
+  | { ok: true; user: UserResponse }
+  | { ok: false; error: string };
+
+/** A blank/whitespace-only name resets to the Google-sourced name (backend
+ * treats "" the same as null). Returns the fresh UserResponse so the caller
+ * can push it into the session via `useSession().update(...)` — the
+ * session cookie has no other way to pick up a change server-side. */
+export async function updateDisplayNameAction(
+  displayName: string,
+): Promise<UpdateDisplayNameResult> {
+  try {
+    const user = await jaasFetch<UserResponse>("/api/v1/account/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ displayName }),
+    });
+    revalidatePath("/account");
+    return { ok: true, user };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to update profile.",
+    };
+  }
 }
 
 export type CustomGuardrailRuleInput = {

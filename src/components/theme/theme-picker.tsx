@@ -52,8 +52,8 @@ export function ThemePicker() {
             <div className="mb-3 space-y-2 rounded-md border border-border bg-card p-3">
               <div className="h-2 w-3/5 rounded-full bg-muted-foreground/30" />
               <div className="h-2 w-2/5 rounded-full bg-muted-foreground/20" />
-              <Button size="sm" className="pointer-events-none mt-2">
-                Publish Skill
+              <Button size="sm" className="pointer-events-none mt-2" asChild>
+                <span>Publish Skill</span>
               </Button>
             </div>
             <p className="text-sm font-medium text-foreground">{THEME_META[name].label}</p>

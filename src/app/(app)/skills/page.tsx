@@ -1,4 +1,4 @@
-import { PackageSearch, Search, TriangleAlert } from "lucide-react";
+import { PackageSearch, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 
 import { auth } from "@/auth";
@@ -6,7 +6,6 @@ import { VisibilityBadge, type BadgeKind } from "@/components/skills/visibility-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -77,31 +76,12 @@ export default async function SkillsBrowsePage({
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Skills</h1>
-          <p className="text-sm text-muted-foreground">
-            Discover published skill packages across your tenants.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/drafts">Create Skill</Link>
-        </Button>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Skills</h1>
+        <p className="text-sm text-muted-foreground">
+          Discover published skill packages across your tenants.
+        </p>
       </div>
-
-      <form action="/skills" className="relative w-full max-w-sm">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="search"
-          name="query"
-          defaultValue={query ?? ""}
-          placeholder="Search skills…"
-          className="pl-8"
-          aria-label="Search skills"
-        />
-        {activeFilter !== "all" && <input type="hidden" name="visibility" value={activeFilter} />}
-        {category && <input type="hidden" name="category" value={category} />}
-      </form>
 
       <div className="flex flex-wrap gap-2">
         {VISIBILITY_FILTERS.map((filter) => {

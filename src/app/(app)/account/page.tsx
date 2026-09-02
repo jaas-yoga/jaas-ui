@@ -1,10 +1,9 @@
-import { KeyRound, Palette } from "lucide-react";
 import Link from "next/link";
 
 import { auth } from "@/auth";
+import { EditDisplayNameForm } from "@/components/account/edit-display-name-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function initials(name: string): string {
@@ -46,7 +45,7 @@ export default async function AccountPage() {
                   <AvatarFallback>{initials(user.name)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium text-foreground">{user.name}</p>
+                  <EditDisplayNameForm name={user.name} hasOverride={Boolean(user.displayName)} />
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
               </div>
@@ -87,19 +86,6 @@ export default async function AccountPage() {
             )}
           </CardContent>
         </Card>
-      </div>
-
-      <div className="flex gap-2">
-        <Button asChild variant="outline">
-          <Link href="/account/appearance">
-            <Palette className="size-4" /> Appearance
-          </Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link href="/account/tokens">
-            <KeyRound className="size-4" /> Personal Access Tokens
-          </Link>
-        </Button>
       </div>
     </div>
   );

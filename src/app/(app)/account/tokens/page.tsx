@@ -26,8 +26,7 @@ export default async function TokensPage() {
         <EmptyState
           icon={KeyRound}
           title="No tokens yet"
-          description="Create one to authenticate jaasctl from a machine without a browser."
-          action={<CreatePatDialog />}
+          description="Use Create Token above to authenticate jaasctl from a machine without a browser."
         />
       ) : (
         <div className="divide-y divide-border rounded-lg border border-border">

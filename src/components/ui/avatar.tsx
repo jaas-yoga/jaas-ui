@@ -27,11 +27,18 @@ function Avatar({
 
 function AvatarImage({
   className,
+  referrerPolicy = "no-referrer",
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Image>) {
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
+      // Google's profile-photo URLs (lh3.googleusercontent.com) reject the
+      // request with a 403 when the browser sends a Referer header that
+      // reveals this app's origin — silently falling through to
+      // AvatarFallback, which looks identical to "this account has no
+      // photo." no-referrer avoids that hotlink check entirely.
+      referrerPolicy={referrerPolicy}
       className={cn(
         "aspect-square size-full rounded-full object-cover",
         className
