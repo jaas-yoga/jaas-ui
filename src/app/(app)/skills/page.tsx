@@ -16,8 +16,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { JaasApiRequestError } from "@/lib/jaas-api";
-import type { SearchResultItem } from "@/lib/jaas-api-types";
-import { searchSkills } from "@/lib/skills-api";
+import type { ReceivedShareResponse, SearchResultItem } from "@/lib/jaas-api-types";
+import { listReceivedShares, searchSkills } from "@/lib/skills-api";
 import {
   matchesVisibilityFilter,
   VISIBILITY_FILTERS,
@@ -53,16 +53,27 @@ export default async function SkillsBrowsePage({
   const caller = { userId: session?.jaasUser?.id, tenantId: session?.jaasActiveTenantId };
 
   let items: SearchResultItem[] = [];
+  let receivedShares: ReceivedShareResponse[] = [];
   let loadError: string | null = null;
   try {
-    const result = await searchSkills({ query, category });
-    items = result.items.filter((item) => matchesVisibilityFilter(item, activeFilter, caller));
+    if (activeFilter === "shared-with-me") {
+      // IMPLEMENTATION_PLAN.md Phase 3.4: a real fetch against
+      // GET /shares/received, not a client-side inference over search
+      // results — this is the only path that can show grant metadata
+      // (who shared it, when, what permission), since SearchResultItem
+      // carries none of that.
+      receivedShares = await listReceivedShares();
+    } else {
+      const result = await searchSkills({ query, category });
+      items = result.items.filter((item) => matchesVisibilityFilter(item, activeFilter, caller));
+    }
   } catch (err) {
     loadError =
       err instanceof JaasApiRequestError
         ? `${err.code}: ${err.message}`
         : "Could not reach the registry API.";
   }
+  const hasResults = activeFilter === "shared-with-me" ? receivedShares.length > 0 : items.length > 0;
 
   return (
     <div className="w-full space-y-6">
@@ -123,7 +134,45 @@ export default async function SkillsBrowsePage({
             </Button>
           }
         />
-      ) : items.length > 0 ? (
+      ) : hasResults && activeFilter === "shared-with-me" ? (
+        <div className="overflow-hidden rounded-lg border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Permission</TableHead>
+                <TableHead>Shared by</TableHead>
+                <TableHead className="text-right">Shared at</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {receivedShares.map((share) => (
+                <TableRow key={share.id} className="cursor-pointer">
+                  <TableCell className="font-medium text-foreground">
+                    <Link
+                      href={`/skills/${share.skillId}/versions/stable`}
+                      className="hover:underline"
+                    >
+                      {share.skillName}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{share.skillCategory}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {share.permission === "read_write" ? "Read & write" : "Read"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{share.grantedBy}</TableCell>
+                  <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                    {new Date(share.grantedAt).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : hasResults ? (
         <div className="overflow-hidden rounded-lg border border-border">
           <Table>
             <TableHeader>

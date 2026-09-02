@@ -186,3 +186,51 @@ coordinated change across both repos; there is no codegen step.
 - Any page under `src/app/(app)/` renders inside the authenticated
   `AppShell` automatically via that route group's `layout.tsx` — don't
   re-wrap it in a page component.
+
+## Phase 3.4: yank/governance display, "Shared with me"
+
+- **The published-file viewer, cross-tenant sharing audit page, and
+  share/validation notifications the roadmap's Phase 3.4 named were
+  investigated before building anything** — the file viewer
+  (`skill-files-viewer.tsx`) already existed and needed nothing;
+  "notifications" mapped to no backend concept at all (no email/SSE/
+  websocket/inbox anywhere in `jaas-skills`); "cross-tenant sharing audit"
+  split into an unrelated multi-event-type tenant audit-export (no UI
+  built for it — out of this pass's agreed scope) and a genuinely useful,
+  previously-unexposed `list_for_grantee` backend function. Don't assume
+  a roadmap one-liner describes the actual gap — check first, the way
+  Phase 3.3's "audit export" also turned out to need more than it said.
+- **`YankStatusBanner` (`skills/yank-status-banner.tsx`) and
+  `GovernanceCard` (`skills/governance-card.tsx`) both render `null` for
+  the common case** (`status: "active"`, no governance record set) —
+  they're warnings/detail cards, not status indicators, so they should be
+  invisible unless there's something to say. Wired into the skill detail
+  page (`skills/[id]/versions/[version]/page.tsx`) right after the
+  immutability notice and after `CertificationCard` respectively.
+- **`GET /shares/received` replaced the old `matchesVisibilityFilter`
+  client-side inference for the `"shared-with-me"` chip** on
+  `/skills` (`src/lib/visibility-filter.ts`) — the inference (an
+  already-visible private item neither owned by me nor my tenant must
+  have reached me via a grant) still logically holds, but the new
+  endpoint returns real grant metadata (who shared it, when, what
+  permission) that `SearchResultItem` has no equivalent of, so
+  `app/(app)/skills/page.tsx` now branches: `activeFilter ===
+  "shared-with-me"` fetches `listReceivedShares()` and renders a
+  dedicated table (Name/Category/Permission/Shared by/Shared at), every
+  other filter still goes through `searchSkills()` +
+  `matchesVisibilityFilter()` exactly as before. `matchesVisibilityFilter`
+  itself now always returns `false` for `"shared-with-me"` (its switch
+  stays exhaustive, but that branch is dead — the real logic moved to the
+  page). Don't "simplify" that back without moving the branch too.
+- **Found via manual verification against the real running stack (`run.sh`),
+  not just tests**: the backend's `skills:governance` permission scope
+  (gating `PUT /skills/{id}/governance`) was defined and used to build the
+  route, but never added to `_MEMBER_SCOPES` in
+  `jaas-skills/src/jaas_registry/authn/service.py` — meaning no real
+  login-minted token could ever call it, only hand-rolled test JWTs that
+  happened to include the scope. Fixed on the backend side (that file's
+  `_MEMBER_SCOPES` tuple), not here — but worth remembering: an
+  integration test with a hand-minted token proves the route's logic is
+  correct, not that a real user can ever reach it. When adding a new
+  permission scope, always check it's actually granted somewhere in the
+  real sign-in path, not just exercised in a test fixture.

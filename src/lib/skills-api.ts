@@ -2,6 +2,7 @@ import "server-only";
 
 import { jaasFetch } from "./jaas-api";
 import type {
+  ReceivedShareResponse,
   ShareGrantResponse,
   SkillMetadataResponse,
   SearchResponse,
@@ -43,6 +44,19 @@ export async function listShareGrants(skillId: string): Promise<ShareGrantRespon
     return await jaasFetch<ShareGrantResponse[]>(
       `/api/v1/skills/${encodeURIComponent(skillId)}/shares`,
     );
+  } catch {
+    return [];
+  }
+}
+
+/** Phase 3.4 "shared with me": grants made directly to the caller, or to
+ * the caller's active tenant. Requires sign-in server-side (403 without
+ * one) — returns [] rather than throwing, same posture as
+ * listShareGrants above, so a session edge case renders an empty list
+ * instead of an error page. */
+export async function listReceivedShares(): Promise<ReceivedShareResponse[]> {
+  try {
+    return await jaasFetch<ReceivedShareResponse[]>("/api/v1/shares/received");
   } catch {
     return [];
   }

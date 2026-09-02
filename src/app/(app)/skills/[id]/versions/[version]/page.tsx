@@ -4,9 +4,11 @@ import Link from "next/link";
 
 import { auth } from "@/auth";
 import { CertificationCard } from "@/components/skills/certification-card";
+import { GovernanceCard } from "@/components/skills/governance-card";
 import { ShareDialog } from "@/components/skills/share-dialog";
 import { SkillFilesViewer } from "@/components/skills/skill-files-viewer";
 import { VisibilityBadge, type BadgeKind } from "@/components/skills/visibility-badge";
+import { YankStatusBanner } from "@/components/skills/yank-status-banner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,6 +82,8 @@ export default async function SkillVersionDetailPage({
           </div>
         )}
       </div>
+
+      <YankStatusBanner status={entry.status} />
 
       <div className="rounded-md border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
         This version is published and immutable — it can never be edited or deleted. To make
@@ -200,6 +204,12 @@ export default async function SkillVersionDetailPage({
       )}
 
       <CertificationCard entry={entry} />
+
+      <GovernanceCard
+        businessPurpose={entry.businessPurpose}
+        systemsAccessed={entry.systemsAccessed}
+        governanceReviewDate={entry.governanceReviewDate}
+      />
 
       <SkillFilesViewer
         skillId={id}

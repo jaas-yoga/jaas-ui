@@ -13,11 +13,18 @@ export const VISIBILITY_FILTERS: { value: VisibilityFilter; label: string }[] = 
 
 /**
  * The backend's visibility rule (design.md §7.2 item 4) tells us an item IS
- * visible, never *why* — there's no "reason" field in SearchResultItem. The
- * "Shared with me" chip is derived client-side from what we already know: if
- * an already-visible item is private, and I don't own it, and it isn't
- * owned by my own tenant, the only remaining way design.md's rule could have
- * let it through is an explicit share grant naming me or my tenant.
+ * visible, never *why* — there's no "reason" field in SearchResultItem.
+ *
+ * "shared-with-me" is NOT handled here — IMPLEMENTATION_PLAN.md Phase 3.4
+ * replaced the old client-side inference (an already-visible private item
+ * neither owned by me nor my tenant must have reached me via a grant) with
+ * a real fetch against GET /shares/received, which the search endpoint
+ * has no equivalent of (grant metadata — who shared it, when, what
+ * permission — simply isn't on SearchResultItem). See
+ * src/app/(app)/skills/page.tsx's branch on activeFilter for where that
+ * now lives. Kept returning false here (never true) only so this stays a
+ * total, exhaustively-checked function if it's ever called with that
+ * filter value by mistake.
  */
 export function matchesVisibilityFilter(
   item: SearchResultItem,
@@ -34,10 +41,6 @@ export function matchesVisibilityFilter(
     case "tenant":
       return item.ownerTenant === caller.tenantId;
     case "shared-with-me":
-      return (
-        item.visibility === "private" &&
-        item.ownerUser !== caller.userId &&
-        item.ownerTenant !== caller.tenantId
-      );
+      return false;
   }
 }

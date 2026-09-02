@@ -50,6 +50,10 @@ export type SearchResultItem = {
   visibility: "public" | "private";
   ownerUser: string;
   ownerTenant: string;
+  /** "yanked" means a maintainer flagged this version insecure/broken
+   * after publish — still directly installable by exact version pin, but
+   * excluded from `latest`/range resolution. */
+  status: "active" | "yanked";
 };
 
 export type PageMeta = {
@@ -68,6 +72,19 @@ export type ShareGrantResponse = {
   skillId: string;
   granteeType: "user" | "tenant";
   granteeId: string;
+  permission: "read" | "read_write";
+  grantedBy: string;
+  grantedAt: string;
+};
+
+/** Mirrors api/schemas.py's ReceivedShareResponse (Phase 3.4's "shared
+ * with me" view — GET /shares/received). */
+export type ReceivedShareResponse = {
+  id: string;
+  skillId: string;
+  skillName: string;
+  skillCategory: string;
+  granteeType: "user" | "tenant";
   permission: "read" | "read_write";
   grantedBy: string;
   grantedAt: string;
@@ -241,6 +258,18 @@ export type SkillMetadataResponse = {
   guardrailCertifiedLevel: number | null;
   guardrailLevelStatuses: GuardrailLevelStatus[];
   guardrailWarningCheckIds: string[];
+  /** "yanked" means a maintainer flagged this version insecure/broken
+   * after publish — a direct metadata fetch always reflects the true
+   * status, even for a version a search/latest resolution would skip. */
+  status: "active" | "yanked";
+  /** Phase 3.3 governance surface (CSA Agentic Trust Framework / EU AI
+   * Act) — null/[] means no governance record has been set yet for this
+   * skill, not "not applicable". Shared across every version of the
+   * skill, unlike most of the fields above. "Owning team" is `owner`
+   * above, not duplicated here. */
+  businessPurpose: string | null;
+  systemsAccessed: string[];
+  governanceReviewDate: string | null;
 };
 
 /** Mirrors api/schemas.py's SourceFilesResponse. Browsing-only view of the
