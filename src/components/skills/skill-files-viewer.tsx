@@ -1,9 +1,10 @@
 "use client";
 
-import Editor from "@monaco-editor/react";
+import Editor, { type OnMount } from "@monaco-editor/react";
 import { Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useRef, useState, type TouchEvent } from "react";
+import type { editor as MonacoEditorNS } from "monaco-editor";
 
 import { FileTree } from "@/components/drafts/file-tree";
 import {
@@ -49,12 +50,57 @@ function FileBrowserPane({
   // within (comfortably fits the 5-file package list with room to spare,
   // and scrolls internally for a larger source-repo tree) regardless of
   // how tall the rest of the page is.
+  const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null);
+  const lastTouchYRef = useRef<number | null>(null);
+
+  const handleEditorMount: OnMount = (editor) => {
+    editorRef.current = editor;
+  };
+
+  // Monaco's own touch handling (vs/base/browser/touch.js's `Gesture`)
+  // preventDefaults every touchmove over the editor unconditionally, even
+  // when the editor has nothing left to scroll — which, on a page that
+  // scrolls its *ancestor* (not the editor itself), permanently traps the
+  // gesture and the surrounding page never moves. We only want Monaco to
+  // keep the gesture when it's actually going to do something with it: it
+  // has overflow, and the swipe direction still has room to move inside
+  // it. Otherwise we stop the touch here (before it bubbles to Monaco's
+  // document-level listener) so the browser's native scroll takes over,
+  // exactly like it would for any other nested scroll container.
+  function handleTouchStart(e: TouchEvent) {
+    lastTouchYRef.current = e.touches[0]?.clientY ?? null;
+  }
+
+  function handleTouchMove(e: TouchEvent) {
+    const editor = editorRef.current;
+    const touchY = e.touches[0]?.clientY;
+    const lastY = lastTouchYRef.current;
+    if (!editor || touchY == null || lastY == null) return;
+    const deltaY = touchY - lastY;
+    lastTouchYRef.current = touchY;
+
+    const scrollTop = editor.getScrollTop();
+    const scrollHeight = editor.getScrollHeight();
+    const viewHeight = editor.getLayoutInfo().height;
+    const noOverflow = scrollHeight <= viewHeight;
+    const atTop = scrollTop <= 0;
+    const atBottom = scrollTop + viewHeight >= scrollHeight - 1;
+
+    if (noOverflow || (deltaY > 0 && atTop) || (deltaY < 0 && atBottom)) {
+      e.stopPropagation();
+    }
+  }
+
   return (
     <div className="flex h-[28rem] border-t border-border">
       <div className="w-56 shrink-0">
         <FileTree files={files} activePath={activePath} onSelect={openFile} readOnly />
       </div>
-      <div className="min-w-0 flex-1">
+      <div
+        className="min-w-0 flex-1"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+      >
         {loading ? (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -65,6 +111,7 @@ function FileBrowserPane({
             language={languageForPath(activePath)}
             value={content}
             theme={monacoTheme}
+            onMount={handleEditorMount}
             options={{
               readOnly: true,
               minimap: { enabled: false },
