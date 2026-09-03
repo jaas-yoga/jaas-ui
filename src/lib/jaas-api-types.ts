@@ -304,11 +304,33 @@ export type CustomGuardrailRuleResponse = {
   config: Record<string, unknown>;
   createdBy: string;
   createdAt: string;
+  version: string;
 };
 
 export type ValidateCustomGuardrailRuleResponse = {
   valid: boolean;
   error: string | null;
+};
+
+/** Mirrors api/schemas.py's CustomGuardrailRuleDraftResponse — scratch
+ * space for a rule being authored, before /publish turns it into an
+ * immutable CustomGuardrailRuleResponse version. */
+export type CustomGuardrailRuleDraftResponse = {
+  id: string;
+  tenantId: string;
+  slug: string;
+  name: string;
+  description: string;
+  category: string;
+  severity: "BLOCK" | "WARN";
+  standardRef: string;
+  kind: string;
+  config: Record<string, unknown>;
+  version: string;
+  forkedFromVersion: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 /** Mirrors api/schemas.py's RepoLinkResponse. */

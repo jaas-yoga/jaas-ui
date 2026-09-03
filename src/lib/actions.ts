@@ -10,6 +10,7 @@ import { getSkillFile, getSkillSourceFile, listSkillSourceFiles } from "@/lib/sk
 import type {
   CreateDraftGitRequest,
   CreatePatResponse,
+  CustomGuardrailRuleDraftResponse,
   CustomGuardrailRuleResponse,
   DraftPublishResponse,
   DraftResponse,
@@ -353,7 +354,7 @@ export async function updateGuardrailPolicyAction(
       `/api/v1/tenants/${tenantId}/guardrail-policy`,
       { method: "PUT", body: JSON.stringify({ enabledCheckIds }) },
     );
-    revalidatePath(`/tenants/${tenantId}/guardrails`);
+    revalidatePath("/guardrails");
     return { ok: true, policy };
   } catch (err) {
     return {
@@ -436,34 +437,6 @@ export type CustomGuardrailRuleInput = {
   config: Record<string, unknown>;
 };
 
-export type PutCustomGuardrailRuleResult =
-  | { ok: true; rule: CustomGuardrailRuleResponse }
-  | { ok: false; error: string };
-
-/** design.md §4.5 "custom rules". The guardrails service is the single
- * source of truth for whether a rule is well-formed — this action doesn't
- * pre-validate, the backend does that itself (via POST .../validate before
- * it ever persists), same as validateCustomGuardrailRuleAction below but
- * for the actual save path. */
-export async function putCustomGuardrailRuleAction(
-  tenantId: string,
-  input: CustomGuardrailRuleInput,
-): Promise<PutCustomGuardrailRuleResult> {
-  try {
-    const rule = await jaasFetch<CustomGuardrailRuleResponse>(
-      `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/${encodeURIComponent(input.slug)}`,
-      { method: "PUT", body: JSON.stringify(input) },
-    );
-    revalidatePath(`/tenants/${tenantId}/guardrails`);
-    return { ok: true, rule };
-  } catch (err) {
-    return {
-      ok: false,
-      error: err instanceof JaasApiRequestError ? err.message : "Failed to save custom rule.",
-    };
-  }
-}
-
 export async function deleteCustomGuardrailRuleAction(
   tenantId: string,
   slug: string,
@@ -479,20 +452,114 @@ export async function deleteCustomGuardrailRuleAction(
       error: err instanceof JaasApiRequestError ? err.message : "Failed to delete custom rule.",
     };
   }
-  revalidatePath(`/tenants/${tenantId}/guardrails`);
+  revalidatePath("/guardrails");
   return { ok: true };
 }
 
-/** Dry-run only — never saves anything. Used for live "Validate" feedback
- * while a rule is being authored in the editor, before Save is pressed. */
-export async function validateCustomGuardrailRuleAction(
+/** design.md §4.5 "custom rules" — now a Draft → Validate → Publish flow,
+ * the same shape as a skill's own draft/publish (jaas-frontend-conventions'
+ * "same process as skills"): any member may draft/fork/validate, but only
+ * publish (below) turns it into a real, immutable version. */
+export type CreateCustomGuardrailRuleDraftResult =
+  | { ok: true; draftId: string }
+  | { ok: false; error: string };
+
+export async function createCustomGuardrailRuleDraftAction(
   tenantId: string,
-  input: CustomGuardrailRuleInput,
+  forkFromSlug?: string,
+): Promise<CreateCustomGuardrailRuleDraftResult> {
+  try {
+    const draft = await jaasFetch<CustomGuardrailRuleDraftResponse>(
+      `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/drafts`,
+      { method: "POST", body: JSON.stringify({ forkFromSlug: forkFromSlug ?? null }) },
+    );
+    return { ok: true, draftId: draft.id };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to create draft.",
+    };
+  }
+}
+
+export type UpdateCustomGuardrailRuleDraftResult =
+  | { ok: true; draft: CustomGuardrailRuleDraftResponse }
+  | { ok: false; error: string };
+
+export async function updateCustomGuardrailRuleDraftAction(
+  tenantId: string,
+  draftId: string,
+  input: CustomGuardrailRuleInput & { version: string },
+): Promise<UpdateCustomGuardrailRuleDraftResult> {
+  try {
+    const draft = await jaasFetch<CustomGuardrailRuleDraftResponse>(
+      `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/drafts/${encodeURIComponent(draftId)}`,
+      { method: "PUT", body: JSON.stringify(input) },
+    );
+    return { ok: true, draft };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to save draft.",
+    };
+  }
+}
+
+export async function deleteCustomGuardrailRuleDraftAction(
+  tenantId: string,
+  draftId: string,
+): Promise<ActionResult> {
+  try {
+    await jaasFetch(
+      `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/drafts/${encodeURIComponent(draftId)}`,
+      { method: "DELETE" },
+    );
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to delete draft.",
+    };
+  }
+  return { ok: true };
+}
+
+/** Dry-run only — never publishes anything. Used for live "Validate"
+ * feedback against the draft's currently-saved content. */
+export async function validateCustomGuardrailRuleDraftAction(
+  tenantId: string,
+  draftId: string,
 ): Promise<ValidateCustomGuardrailRuleResponse> {
   return jaasFetch<ValidateCustomGuardrailRuleResponse>(
-    `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/validate`,
-    { method: "POST", body: JSON.stringify(input) },
+    `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/drafts/${encodeURIComponent(draftId)}/validate`,
+    { method: "POST" },
   );
+}
+
+export type PublishCustomGuardrailRuleDraftResult =
+  | { ok: true; rule: CustomGuardrailRuleResponse }
+  | { ok: false; error: string };
+
+/** Admin-only on the backend — mandatory re-validation happens there too,
+ * this action doesn't skip straight to publish on the strength of an
+ * earlier /validate call. Success deletes the draft (mirrors a skill's
+ * publish_draft) and the rule is live immediately. */
+export async function publishCustomGuardrailRuleDraftAction(
+  tenantId: string,
+  draftId: string,
+): Promise<PublishCustomGuardrailRuleDraftResult> {
+  try {
+    const rule = await jaasFetch<CustomGuardrailRuleResponse>(
+      `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/drafts/${encodeURIComponent(draftId)}/publish`,
+      { method: "POST" },
+    );
+    revalidatePath("/guardrails");
+    return { ok: true, rule };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to publish rule.",
+    };
+  }
 }
 
 export type CreateRepoLinkResult =
@@ -512,7 +579,7 @@ export async function createRepoLinkAction(
       `/api/v1/tenants/${encodeURIComponent(tenantId)}/repo-links`,
       { method: "POST", body: JSON.stringify(input) },
     );
-    revalidatePath(`/tenants/${tenantId}/guardrails`);
+    revalidatePath(`/tenants/${tenantId}/repositories`);
     return { ok: true, link };
   } catch (err) {
     return {
@@ -534,7 +601,7 @@ export async function updateRepoLinkAction(
       `/api/v1/tenants/${encodeURIComponent(tenantId)}/repo-links/${encodeURIComponent(skillId)}`,
       { method: "PUT", body: JSON.stringify({ releaseBranches }) },
     );
-    revalidatePath(`/tenants/${tenantId}/guardrails`);
+    revalidatePath(`/tenants/${tenantId}/repositories`);
     return { ok: true, link };
   } catch (err) {
     return {
@@ -559,7 +626,7 @@ export async function deleteRepoLinkAction(
       error: err instanceof JaasApiRequestError ? err.message : "Failed to remove repo link.",
     };
   }
-  revalidatePath(`/tenants/${tenantId}/guardrails`);
+  revalidatePath(`/tenants/${tenantId}/repositories`);
   return { ok: true };
 }
 

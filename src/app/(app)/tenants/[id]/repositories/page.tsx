@@ -10,9 +10,10 @@ import { listRepoLinks } from "@/lib/repo-links-api";
 import { JaasApiRequestError } from "@/lib/jaas-api";
 import { listMembers } from "@/lib/tenants-api";
 
-/** Split out of the Guardrails tab: connecting GitHub and registering which
- * repos may publish/release this tenant's skills isn't a guardrail setting
- * — it's its own tab alongside Members and Guardrails. */
+/** Split out of the Guardrails tab (which has since moved to its own
+ * top-level sidebar item): connecting GitHub and registering which repos
+ * may publish/release this tenant's skills isn't a guardrail setting —
+ * it's its own tab alongside Members here in Tenant Settings. */
 export default async function TenantRepositoriesPage({
   params,
   searchParams,

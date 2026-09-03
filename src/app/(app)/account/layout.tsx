@@ -4,9 +4,9 @@ import { AccountNavTabs } from "@/components/account/account-nav-tabs";
 
 export default function AccountLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="w-full space-y-6">
+    <div className="flex w-full gap-8">
       <AccountNavTabs />
-      {children}
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
 }

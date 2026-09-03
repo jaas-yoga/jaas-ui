@@ -10,9 +10,9 @@ export default async function TenantLayout({
   const { id } = await params;
 
   return (
-    <div className="w-full space-y-6">
+    <div className="flex w-full gap-8">
       <TenantNavTabs tenantId={id} />
-      {children}
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
 }
