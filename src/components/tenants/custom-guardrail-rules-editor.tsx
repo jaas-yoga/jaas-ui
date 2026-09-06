@@ -90,27 +90,45 @@ export function CustomGuardrailRulesEditor({
                   <Badge variant="outline" className="font-mono text-xs">
                     v{rule.version}
                   </Badge>
+                  {rule.sourceRepo && (
+                    <Badge variant="outline" className="text-xs">
+                      From repo
+                    </Badge>
+                  )}
                 </div>
                 <p className="truncate text-xs text-muted-foreground">
                   <code>{rule.id}</code> · {rule.category} · {rule.kind}
                 </p>
               </div>
               {isAdmin && (
-                <div className="flex shrink-0 items-center gap-1">
-                  <CreateGuardrailRuleDraftButton
-                    tenantId={tenantId}
-                    forkFromSlug={rule.slug}
-                    variant="ghost"
-                    size="icon"
-                    iconOnly
-                  >
-                    <Pencil className="size-4" />
-                  </CreateGuardrailRuleDraftButton>
+                <div
+                  className="flex shrink-0 items-center gap-1"
+                  title={
+                    rule.sourceRepo
+                      ? `Managed by ${rule.sourceRepo} — edit it there and push again.`
+                      : undefined
+                  }
+                >
+                  {rule.sourceRepo ? (
+                    <Button variant="ghost" size="icon" disabled>
+                      <Pencil className="size-4" />
+                    </Button>
+                  ) : (
+                    <CreateGuardrailRuleDraftButton
+                      tenantId={tenantId}
+                      forkFromSlug={rule.slug}
+                      variant="ghost"
+                      size="icon"
+                      iconOnly
+                    >
+                      <Pencil className="size-4" />
+                    </CreateGuardrailRuleDraftButton>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDelete(rule.slug)}
-                    disabled={pending && deletingSlug === rule.slug}
+                    disabled={Boolean(rule.sourceRepo) || (pending && deletingSlug === rule.slug)}
                   >
                     {pending && deletingSlug === rule.slug ? (
                       <Loader2 className="size-4 animate-spin" />

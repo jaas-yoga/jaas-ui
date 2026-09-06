@@ -6,9 +6,12 @@ import { auth } from "@/auth";
 import { CreateGuardrailRuleDraftButton } from "@/components/tenants/create-guardrail-rule-draft-button";
 import { CustomGuardrailRulesEditor } from "@/components/tenants/custom-guardrail-rules-editor";
 import { GuardrailPolicyEditor } from "@/components/tenants/guardrail-policy-editor";
+import { GuardrailRuleRepoLinkCard } from "@/components/tenants/guardrail-rule-repo-link-card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Separator } from "@/components/ui/separator";
+import { getGithubConnection } from "@/lib/github-api";
+import { getGuardrailRuleRepoLink } from "@/lib/guardrail-repo-link-api";
 import {
   listCustomGuardrailRules,
   listGuardrailCatalog,
@@ -71,13 +74,15 @@ export default async function GuardrailsPage({
     );
   }
 
-  let catalog, policy, members, customRules;
+  let catalog, policy, members, customRules, githubConnection, ruleRepoLink;
   try {
-    [catalog, policy, members, customRules] = await Promise.all([
+    [catalog, policy, members, customRules, githubConnection, ruleRepoLink] = await Promise.all([
       listGuardrailCatalog(),
       getTenantGuardrailPolicy(tenantId),
       listMembers(tenantId),
       listCustomGuardrailRules(tenantId),
+      getGithubConnection(tenantId),
+      getGuardrailRuleRepoLink(tenantId),
     ]);
   } catch (err) {
     if (err instanceof JaasApiRequestError && err.status === 404) {
@@ -128,6 +133,15 @@ export default async function GuardrailsPage({
       )}
 
       {activeScope === "all" && <Separator />}
+
+      {(activeScope === "all" || activeScope === "tenant" || activeScope === "mine") && (
+        <GuardrailRuleRepoLinkCard
+          tenantId={tenantId}
+          link={ruleRepoLink}
+          githubConnected={githubConnection.connected}
+          isAdmin={isAdmin}
+        />
+      )}
 
       {(activeScope === "all" || activeScope === "tenant" || activeScope === "mine") && (
         <CustomGuardrailRulesEditor

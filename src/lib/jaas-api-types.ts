@@ -305,6 +305,12 @@ export type CustomGuardrailRuleResponse = {
   createdBy: string;
   createdAt: string;
   version: string;
+  /** Set when this rule was synced via `jaasctl guardrails push` from a git
+   * checkout rather than authored by hand in the web UI — see
+   * guardrail-rule-repo-link-card.tsx and api/tenant_routes.py's
+   * anti-clobber check for what this gates. */
+  sourceRepo: string | null;
+  sourceCommit: string | null;
 };
 
 export type ValidateCustomGuardrailRuleResponse = {
@@ -344,6 +350,15 @@ export type RepoLinkResponse = {
   /** Branches allowed to release, verified via the OIDC token's
    * `environment` claim — empty means no restriction. */
   releaseBranches: string[];
+};
+
+/** Mirrors api/schemas.py's GuardrailRuleRepoLinkResponse — one per tenant,
+ * declares which repo `jaasctl guardrails push` is expected to run from. */
+export type GuardrailRuleRepoLinkResponse = {
+  tenantId: string;
+  repoUrl: string;
+  createdBy: string;
+  createdAt: string;
 };
 
 /** Mirrors api/schemas.py's GithubConnectUrlResponse. */

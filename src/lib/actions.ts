@@ -18,6 +18,7 @@ import type {
   GithubOAuthAppRequest,
   GithubOAuthAppResponse,
   GithubRepoResponse,
+  GuardrailRuleRepoLinkResponse,
   InviteMemberResponse,
   RepoLinkResponse,
   SourceFilesResponse,
@@ -627,6 +628,47 @@ export async function deleteRepoLinkAction(
     };
   }
   revalidatePath(`/tenants/${tenantId}/repositories`);
+  return { ok: true };
+}
+
+export type CreateGuardrailRuleRepoLinkResult =
+  | { ok: true; link: GuardrailRuleRepoLinkResponse }
+  | { ok: false; error: string };
+
+/** Declares which repo `jaasctl guardrails push` is expected to run from
+ * for this tenant — see guardrail-rule-repo-link-card.tsx and
+ * api/tenant_routes.py::put_guardrail_rule_repo_link. */
+export async function createGuardrailRuleRepoLinkAction(
+  tenantId: string,
+  repoUrl: string,
+): Promise<CreateGuardrailRuleRepoLinkResult> {
+  try {
+    const link = await jaasFetch<GuardrailRuleRepoLinkResponse>(
+      `/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/repo-link`,
+      { method: "PUT", body: JSON.stringify({ repoUrl }) },
+    );
+    revalidatePath("/guardrails");
+    return { ok: true, link };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to connect repo.",
+    };
+  }
+}
+
+export async function deleteGuardrailRuleRepoLinkAction(tenantId: string): Promise<ActionResult> {
+  try {
+    await jaasFetch(`/api/v1/tenants/${encodeURIComponent(tenantId)}/custom-guardrails/repo-link`, {
+      method: "DELETE",
+    });
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof JaasApiRequestError ? err.message : "Failed to remove repo link.",
+    };
+  }
+  revalidatePath("/guardrails");
   return { ok: true };
 }
 
