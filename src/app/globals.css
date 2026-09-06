@@ -79,48 +79,48 @@
    would keep beating dark/ocean/violet after next-themes sets the
    attribute instead of only filling the gap before it does. */
 :root:not([data-theme]) {
-  --background: 0 0% 100%;
+  --background: 234 33% 99%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
-  --brand: 243 75% 59%;
+  --brand: 243 82% 60%;
   --brand-foreground: 0 0% 100%;
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
-  --secondary: 220 14% 96%;
+  --secondary: 234 30% 95%;
   --secondary-foreground: 222 47% 11%;
-  --muted: 220 14% 96%;
-  --muted-foreground: 220 9% 46%;
-  --accent: 220 14% 96%;
+  --muted: 220 20% 96%;
+  --muted-foreground: 220 9% 42%;
+  --accent: 243 48% 94%;
   --accent-foreground: 222 47% 11%;
-  --success: 142 71% 35%;
+  --success: 142 76% 36%;
   --success-foreground: 0 0% 100%;
-  --warning: 32 95% 44%;
+  --warning: 32 95% 48%;
   --warning-foreground: 0 0% 100%;
-  --danger: 0 72% 51%;
+  --danger: 0 78% 52%;
   --danger-foreground: 0 0% 100%;
   --destructive: var(--danger);
   --destructive-foreground: var(--danger-foreground);
-  --info: 199 89% 40%;
+  --info: 199 89% 42%;
   --info-foreground: 0 0% 100%;
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
-  --ring: 243 75% 59%;
-  --sidebar: 220 20% 98%;
+  --border: 225 18% 89%;
+  --input: 225 18% 89%;
+  --ring: 243 82% 60%;
+  --sidebar: 234 38% 96.5%;
   --sidebar-foreground: 222 47% 11%;
   --sidebar-primary: var(--brand);
   --sidebar-primary-foreground: var(--brand-foreground);
-  --sidebar-accent: 220 14% 94%;
-  --sidebar-accent-foreground: 222 47% 11%;
-  --sidebar-border: 220 13% 91%;
-  --sidebar-ring: 243 75% 59%;
-  --chart-1: 243 75% 59%;
-  --chart-2: 199 89% 40%;
-  --chart-3: 142 71% 35%;
-  --chart-4: 32 95% 44%;
-  --chart-5: 0 72% 51%;
+  --sidebar-accent: 243 55% 92%;
+  --sidebar-accent-foreground: 243 70% 30%;
+  --sidebar-border: 234 24% 89%;
+  --sidebar-ring: 243 82% 60%;
+  --chart-1: 243 82% 60%;
+  --chart-2: 199 89% 42%;
+  --chart-3: 142 76% 36%;
+  --chart-4: 32 95% 48%;
+  --chart-5: 0 78% 52%;
 }
 
 @layer base {

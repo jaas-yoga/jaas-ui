@@ -8,10 +8,18 @@
  * renaming, or retuning a theme is a change to this file alone.
  *
  * Semantic colors (success/warning/danger/info) intentionally keep the same
- * hue in every theme — only lightness shifts between light-background and
- * dark-background themes for contrast. --brand and the neutral scale are the
- * only values that actually change per theme, so a visibility badge never
- * changes meaning depending on which theme the viewer picked.
+ * hue in every theme — only lightness/saturation shifts between
+ * light-background and dark-background themes for contrast. --brand and the
+ * neutral scale are the only values that actually change per theme, so a
+ * visibility badge never changes meaning depending on which theme the
+ * viewer picked.
+ *
+ * Neutrals (secondary/muted/accent/sidebar) are intentionally tinted a few
+ * degrees toward each theme's own --brand hue rather than flat gray — it's
+ * what makes a theme read as "one designed surface" instead of a gray box
+ * with a colored button dropped on top. --accent and --sidebar-accent (hover
+ * / active state) get an extra step of brand saturation on top of that,
+ * since those are the surfaces a user's eye is drawn to while interacting.
  */
 
 :root {
@@ -24,214 +32,214 @@
 /* Light — default theme (ui-design.md §8.5.1)                            */
 /* ---------------------------------------------------------------------- */
 [data-theme="light"] {
-  --background: 0 0% 100%;
+  --background: 234 33% 99%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
 
-  --brand: 243 75% 59%; /* indigo-600 */
+  --brand: 243 82% 60%; /* indigo-600, richer */
   --brand-foreground: 0 0% 100%;
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
 
-  --secondary: 220 14% 96%;
+  --secondary: 234 30% 95%;
   --secondary-foreground: 222 47% 11%;
-  --muted: 220 14% 96%;
-  --muted-foreground: 220 9% 46%;
-  --accent: 220 14% 96%;
+  --muted: 220 20% 96%;
+  --muted-foreground: 220 9% 42%;
+  --accent: 243 48% 94%;
   --accent-foreground: 222 47% 11%;
 
-  --success: 142 71% 35%;
+  --success: 142 76% 36%;
   --success-foreground: 0 0% 100%;
-  --warning: 32 95% 44%;
+  --warning: 32 95% 48%;
   --warning-foreground: 0 0% 100%;
-  --danger: 0 72% 51%;
+  --danger: 0 78% 52%;
   --danger-foreground: 0 0% 100%;
   --destructive: var(--danger);
   --destructive-foreground: var(--danger-foreground);
-  --info: 199 89% 40%;
+  --info: 199 89% 42%;
   --info-foreground: 0 0% 100%;
 
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
-  --ring: 243 75% 59%;
+  --border: 225 18% 89%;
+  --input: 225 18% 89%;
+  --ring: 243 82% 60%;
 
-  --sidebar: 220 20% 98%;
+  --sidebar: 234 38% 96.5%;
   --sidebar-foreground: 222 47% 11%;
   --sidebar-primary: var(--brand);
   --sidebar-primary-foreground: var(--brand-foreground);
-  --sidebar-accent: 220 14% 94%;
-  --sidebar-accent-foreground: 222 47% 11%;
-  --sidebar-border: 220 13% 91%;
-  --sidebar-ring: 243 75% 59%;
+  --sidebar-accent: 243 55% 92%;
+  --sidebar-accent-foreground: 243 70% 30%;
+  --sidebar-border: 234 24% 89%;
+  --sidebar-ring: 243 82% 60%;
 
-  --chart-1: 243 75% 59%;
-  --chart-2: 199 89% 40%;
-  --chart-3: 142 71% 35%;
-  --chart-4: 32 95% 44%;
-  --chart-5: 0 72% 51%;
+  --chart-1: 243 82% 60%;
+  --chart-2: 199 89% 42%;
+  --chart-3: 142 76% 36%;
+  --chart-4: 32 95% 48%;
+  --chart-5: 0 78% 52%;
 }
 
 /* ---------------------------------------------------------------------- */
 /* Dark (ui-design.md §8.5.1)                                             */
 /* ---------------------------------------------------------------------- */
 [data-theme="dark"] {
-  --background: 222 47% 8%;
-  --foreground: 210 20% 96%;
-  --card: 222 40% 11%;
-  --card-foreground: 210 20% 96%;
-  --popover: 222 40% 11%;
-  --popover-foreground: 210 20% 96%;
+  --background: 226 46% 7%;
+  --foreground: 210 30% 97%;
+  --card: 226 38% 11%;
+  --card-foreground: 210 30% 97%;
+  --popover: 226 38% 12%;
+  --popover-foreground: 210 30% 97%;
 
-  --brand: 243 75% 68%; /* lightened for AA contrast on dark bg */
-  --brand-foreground: 222 47% 8%;
+  --brand: 243 85% 70%; /* lightened for AA contrast on dark bg */
+  --brand-foreground: 226 46% 8%;
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
 
-  --secondary: 222 30% 16%;
-  --secondary-foreground: 210 20% 96%;
-  --muted: 222 30% 16%;
-  --muted-foreground: 217 15% 65%;
-  --accent: 222 30% 18%;
-  --accent-foreground: 210 20% 96%;
+  --secondary: 230 28% 17%;
+  --secondary-foreground: 210 30% 97%;
+  --muted: 230 26% 16%;
+  --muted-foreground: 217 18% 68%;
+  --accent: 243 35% 22%;
+  --accent-foreground: 210 30% 97%;
 
-  --success: 142 60% 50%;
-  --success-foreground: 222 47% 8%;
-  --warning: 32 90% 58%;
-  --warning-foreground: 222 47% 8%;
-  --danger: 0 70% 63%;
-  --danger-foreground: 222 47% 8%;
+  --success: 142 65% 52%;
+  --success-foreground: 226 46% 8%;
+  --warning: 32 92% 60%;
+  --warning-foreground: 226 46% 8%;
+  --danger: 0 72% 65%;
+  --danger-foreground: 226 46% 8%;
   --destructive: var(--danger);
   --destructive-foreground: var(--danger-foreground);
-  --info: 199 85% 58%;
-  --info-foreground: 222 47% 8%;
+  --info: 199 88% 60%;
+  --info-foreground: 226 46% 8%;
 
-  --border: 222 25% 20%;
-  --input: 222 25% 20%;
-  --ring: 243 75% 68%;
+  --border: 228 24% 21%;
+  --input: 228 24% 21%;
+  --ring: 243 85% 70%;
 
-  --sidebar: 222 47% 6%;
-  --sidebar-foreground: 210 20% 96%;
+  --sidebar: 226 50% 5.5%;
+  --sidebar-foreground: 210 30% 97%;
   --sidebar-primary: var(--brand);
   --sidebar-primary-foreground: var(--brand-foreground);
-  --sidebar-accent: 222 30% 16%;
-  --sidebar-accent-foreground: 210 20% 96%;
-  --sidebar-border: 222 25% 20%;
-  --sidebar-ring: 243 75% 68%;
+  --sidebar-accent: 243 40% 20%;
+  --sidebar-accent-foreground: 243 90% 82%;
+  --sidebar-border: 228 24% 18%;
+  --sidebar-ring: 243 85% 70%;
 
-  --chart-1: 243 75% 68%;
-  --chart-2: 199 85% 58%;
-  --chart-3: 142 60% 50%;
-  --chart-4: 32 90% 58%;
-  --chart-5: 0 70% 63%;
+  --chart-1: 243 85% 70%;
+  --chart-2: 199 88% 60%;
+  --chart-3: 142 65% 52%;
+  --chart-4: 32 92% 60%;
+  --chart-5: 0 72% 65%;
 }
 
 /* ---------------------------------------------------------------------- */
 /* Ocean — light-background, teal/cyan accent (ui-design.md §8.5.1)       */
 /* ---------------------------------------------------------------------- */
 [data-theme="ocean"] {
-  --background: 195 40% 99%;
+  --background: 195 45% 98.5%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
 
-  --brand: 189 80% 34%; /* teal/cyan, ~189° */
+  --brand: 189 85% 36%; /* teal/cyan, ~189°, richer */
   --brand-foreground: 0 0% 100%;
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
 
-  --secondary: 195 30% 95%;
+  --secondary: 195 35% 94%;
   --secondary-foreground: 222 47% 11%;
-  --muted: 195 30% 95%;
-  --muted-foreground: 200 10% 45%;
-  --accent: 195 35% 93%;
+  --muted: 195 28% 95%;
+  --muted-foreground: 200 12% 42%;
+  --accent: 189 45% 93%;
   --accent-foreground: 222 47% 11%;
 
-  --success: 142 71% 35%;
+  --success: 142 76% 36%;
   --success-foreground: 0 0% 100%;
-  --warning: 32 95% 44%;
+  --warning: 32 95% 48%;
   --warning-foreground: 0 0% 100%;
-  --danger: 0 72% 51%;
+  --danger: 0 78% 52%;
   --danger-foreground: 0 0% 100%;
   --destructive: var(--danger);
   --destructive-foreground: var(--danger-foreground);
-  --info: 199 89% 40%;
+  --info: 199 89% 42%;
   --info-foreground: 0 0% 100%;
 
-  --border: 195 25% 88%;
-  --input: 195 25% 88%;
-  --ring: 189 80% 34%;
+  --border: 195 25% 87%;
+  --input: 195 25% 87%;
+  --ring: 189 85% 36%;
 
-  --sidebar: 195 45% 97%;
+  --sidebar: 195 50% 95.5%;
   --sidebar-foreground: 222 47% 11%;
   --sidebar-primary: var(--brand);
   --sidebar-primary-foreground: var(--brand-foreground);
-  --sidebar-accent: 195 30% 92%;
-  --sidebar-accent-foreground: 222 47% 11%;
-  --sidebar-border: 195 25% 88%;
-  --sidebar-ring: 189 80% 34%;
+  --sidebar-accent: 189 55% 89%;
+  --sidebar-accent-foreground: 189 85% 24%;
+  --sidebar-border: 195 25% 86%;
+  --sidebar-ring: 189 85% 36%;
 
-  --chart-1: 189 80% 34%;
-  --chart-2: 199 89% 40%;
-  --chart-3: 142 71% 35%;
-  --chart-4: 32 95% 44%;
-  --chart-5: 0 72% 51%;
+  --chart-1: 189 85% 36%;
+  --chart-2: 199 89% 42%;
+  --chart-3: 142 76% 36%;
+  --chart-4: 32 95% 48%;
+  --chart-5: 0 78% 52%;
 }
 
 /* ---------------------------------------------------------------------- */
 /* Violet — dark-background, purple accent (ui-design.md §8.5.1)          */
 /* ---------------------------------------------------------------------- */
 [data-theme="violet"] {
-  --background: 260 25% 9%;
-  --foreground: 260 15% 96%;
-  --card: 260 22% 12%;
-  --card-foreground: 260 15% 96%;
-  --popover: 260 22% 12%;
-  --popover-foreground: 260 15% 96%;
+  --background: 262 28% 8%;
+  --foreground: 260 20% 97%;
+  --card: 262 24% 12%;
+  --card-foreground: 260 20% 97%;
+  --popover: 262 24% 13%;
+  --popover-foreground: 260 20% 97%;
 
-  --brand: 271 70% 65%; /* purple, ~271° */
-  --brand-foreground: 260 25% 9%;
+  --brand: 271 78% 68%; /* purple, ~271°, richer */
+  --brand-foreground: 262 28% 8%;
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
 
-  --secondary: 260 20% 17%;
-  --secondary-foreground: 260 15% 96%;
-  --muted: 260 20% 17%;
-  --muted-foreground: 260 10% 68%;
-  --accent: 260 20% 19%;
-  --accent-foreground: 260 15% 96%;
+  --secondary: 262 22% 18%;
+  --secondary-foreground: 260 20% 97%;
+  --muted: 262 20% 17%;
+  --muted-foreground: 260 12% 70%;
+  --accent: 271 35% 23%;
+  --accent-foreground: 260 20% 97%;
 
-  --success: 142 60% 50%;
-  --success-foreground: 260 25% 9%;
-  --warning: 32 90% 58%;
-  --warning-foreground: 260 25% 9%;
-  --danger: 0 70% 63%;
-  --danger-foreground: 260 25% 9%;
+  --success: 142 65% 52%;
+  --success-foreground: 262 28% 8%;
+  --warning: 32 92% 60%;
+  --warning-foreground: 262 28% 8%;
+  --danger: 0 72% 65%;
+  --danger-foreground: 262 28% 8%;
   --destructive: var(--danger);
   --destructive-foreground: var(--danger-foreground);
-  --info: 199 85% 58%;
-  --info-foreground: 260 25% 9%;
+  --info: 199 88% 60%;
+  --info-foreground: 262 28% 8%;
 
-  --border: 260 20% 22%;
-  --input: 260 20% 22%;
-  --ring: 271 70% 65%;
+  --border: 262 22% 23%;
+  --input: 262 22% 23%;
+  --ring: 271 78% 68%;
 
-  --sidebar: 260 28% 7%;
-  --sidebar-foreground: 260 15% 96%;
+  --sidebar: 264 32% 6%;
+  --sidebar-foreground: 260 20% 97%;
   --sidebar-primary: var(--brand);
   --sidebar-primary-foreground: var(--brand-foreground);
-  --sidebar-accent: 260 20% 17%;
-  --sidebar-accent-foreground: 260 15% 96%;
-  --sidebar-border: 260 20% 22%;
-  --sidebar-ring: 271 70% 65%;
+  --sidebar-accent: 271 40% 22%;
+  --sidebar-accent-foreground: 271 90% 84%;
+  --sidebar-border: 262 22% 19%;
+  --sidebar-ring: 271 78% 68%;
 
-  --chart-1: 271 70% 65%;
-  --chart-2: 199 85% 58%;
-  --chart-3: 142 60% 50%;
-  --chart-4: 32 90% 58%;
-  --chart-5: 0 70% 63%;
+  --chart-1: 271 78% 68%;
+  --chart-2: 199 88% 60%;
+  --chart-3: 142 65% 52%;
+  --chart-4: 32 92% 60%;
+  --chart-5: 0 72% 65%;
 }
