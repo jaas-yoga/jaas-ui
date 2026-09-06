@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Pencil, ShieldPlus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, ShieldPlus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CreateGuardrailRuleDraftButton } from "@/components/tenants/create-guardrail-rule-draft-button";
+import { GuardrailRuleRepoControl } from "@/components/tenants/guardrail-rule-repo-control";
 import { deleteCustomGuardrailRuleAction } from "@/lib/actions";
-import type { CustomGuardrailRuleResponse } from "@/lib/jaas-api-types";
+import type { CustomGuardrailRuleResponse, GuardrailRuleRepoLinkResponse } from "@/lib/jaas-api-types";
 
 /** design.md §4.5's "user can define guardrails" — a tenant-owned library
  * of reusable custom rules, applied tenant-wide or per-skill via a
@@ -19,17 +20,23 @@ import type { CustomGuardrailRuleResponse } from "@/lib/jaas-api-types";
  * Creating/editing a rule is a Draft → Validate → Publish flow (see
  * guardrail-rule-draft-editor.tsx) — "Edit" here forks the published rule
  * into a new draft rather than opening an inline form, the same as a
- * skill's "New Version". The page-header "Create Rule" button
- * (guardrails/page.tsx) creates a brand-new, blank draft the same way. */
+ * skill's "New Version". Create Rule and the rule-repo connect control
+ * both live in this header, side by side — manual authoring and git-based
+ * syncing are two entry points into the same rule list, not separate
+ * features, so they don't get separate sections. */
 export function CustomGuardrailRulesEditor({
   tenantId,
   rules,
   isAdmin,
+  ruleRepoLink,
+  githubConnected,
   emptyDescription,
 }: {
   tenantId: string;
   rules: CustomGuardrailRuleResponse[];
   isAdmin: boolean;
+  ruleRepoLink: GuardrailRuleRepoLinkResponse | null;
+  githubConnected: boolean;
   /** Overrides the empty-state copy — used by the "Created by me" filter,
    * where "no custom rules yet" would be misleading if the tenant already
    * has rules authored by someone else. */
@@ -50,13 +57,27 @@ export function CustomGuardrailRulesEditor({
 
   return (
     <div className="space-y-3">
-      <div>
-        <h2 className="text-sm font-semibold text-foreground">Custom Rules</h2>
-        <p className="text-xs text-muted-foreground">
-          Rules this tenant defines itself, on top of the platform catalog above. Apply them
-          tenant-wide here, or per-skill via that skill&apos;s own{" "}
-          <code className="rounded bg-muted px-1 py-0.5">.jaas/guardrails.yaml</code>.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">Custom Rules</h2>
+          <p className="text-xs text-muted-foreground">
+            Rules this tenant defines itself, on top of the platform catalog above. Apply them
+            tenant-wide here, or per-skill via that skill&apos;s own{" "}
+            <code className="rounded bg-muted px-1 py-0.5">.jaas/guardrails.yaml</code>.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <GuardrailRuleRepoControl
+            tenantId={tenantId}
+            link={ruleRepoLink}
+            githubConnected={githubConnected}
+            isAdmin={isAdmin}
+          />
+          <CreateGuardrailRuleDraftButton tenantId={tenantId} size="sm">
+            <Plus className="size-4" />
+            Create Rule
+          </CreateGuardrailRuleDraftButton>
+        </div>
       </div>
 
       {rules.length === 0 ? (

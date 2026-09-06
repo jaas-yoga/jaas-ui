@@ -636,7 +636,7 @@ export type CreateGuardrailRuleRepoLinkResult =
   | { ok: false; error: string };
 
 /** Declares which repo `jaasctl guardrails push` is expected to run from
- * for this tenant — see guardrail-rule-repo-link-card.tsx and
+ * for this tenant — see guardrail-rule-repo-control.tsx and
  * api/tenant_routes.py::put_guardrail_rule_repo_link. */
 export async function createGuardrailRuleRepoLinkAction(
   tenantId: string,

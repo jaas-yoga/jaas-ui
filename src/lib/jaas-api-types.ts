@@ -307,7 +307,7 @@ export type CustomGuardrailRuleResponse = {
   version: string;
   /** Set when this rule was synced via `jaasctl guardrails push` from a git
    * checkout rather than authored by hand in the web UI — see
-   * guardrail-rule-repo-link-card.tsx and api/tenant_routes.py's
+   * guardrail-rule-repo-control.tsx and api/tenant_routes.py's
    * anti-clobber check for what this gates. */
   sourceRepo: string | null;
   sourceCommit: string | null;

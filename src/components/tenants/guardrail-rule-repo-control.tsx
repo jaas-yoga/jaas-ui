@@ -1,6 +1,6 @@
 "use client";
 
-import { GitBranch, Loader2, Trash2 } from "lucide-react";
+import { GitBranch, Loader2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -14,7 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import {
   createGuardrailRuleRepoLinkAction,
@@ -113,11 +112,14 @@ function ConnectDialog({
 /** design.md §4.5's "user can define guardrails" hardened for a git-native
  * workflow: declares which repo this tenant's custom guardrail rules come
  * from, so `jaasctl guardrails push` (the CI-facing alternative to
- * authoring rules by hand — see custom-guardrail-rules-editor.tsx) has
- * something to be checked against. Modeled on repo-links-editor.tsx, but
- * one link per tenant instead of one per skill id — no branch picking,
- * since the push endpoint doesn't use one. */
-export function GuardrailRuleRepoLinkCard({
+ * authoring rules by hand) has something to be checked against. Lives
+ * inline in the Custom Rules section header (custom-guardrail-rules-editor.tsx)
+ * next to Create Rule, rather than as its own card — the two are
+ * alternative ways into the same rule list, not separate features, and a
+ * full empty-state card for a tenant that never uses the git workflow was
+ * pure clutter. Renders nothing for a non-admin when there's nothing
+ * connected — only an admin can act on it either way. */
+export function GuardrailRuleRepoControl({
   tenantId,
   link,
   githubConnected,
@@ -139,51 +141,35 @@ export function GuardrailRuleRepoLinkCard({
     });
   }
 
+  if (!link && !isAdmin) return null;
+
   const parsed = link ? parseGithubRepoUrl(link.repoUrl) : null;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">Rule Repo</h2>
-          <p className="text-xs text-muted-foreground">
-            Where this tenant&apos;s custom guardrail rules are version-controlled.
-          </p>
-        </div>
-        {isAdmin && !link && (
-          <Button size="sm" onClick={() => setDialogOpen(true)}>
-            Connect a repo
-          </Button>
-        )}
-      </div>
-
+    <>
       {link ? (
-        <div className="flex items-center gap-3 rounded-lg border border-border px-4 py-3">
-          <GitBranch className="size-4 shrink-0 text-muted-foreground" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-foreground">
-              {parsed ? `${parsed.owner}/${parsed.name}` : link.repoUrl}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Connected {new Date(link.createdAt).toLocaleDateString()}
-            </p>
-          </div>
+        <div className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 py-1 pr-1.5 pl-2.5 text-xs">
+          <GitBranch className="size-3.5 text-muted-foreground" />
+          <span className="font-medium text-foreground">
+            {parsed ? `${parsed.owner}/${parsed.name}` : link.repoUrl}
+          </span>
           {isAdmin && (
-            <Button variant="ghost" size="icon" onClick={handleDisconnect} disabled={pending}>
-              {pending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-            </Button>
+            <button
+              type="button"
+              onClick={handleDisconnect}
+              disabled={pending}
+              title="Disconnect rule repo"
+              className="text-muted-foreground hover:text-danger"
+            >
+              {pending ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3" />}
+            </button>
           )}
         </div>
       ) : (
-        <EmptyState
-          icon={GitBranch}
-          title="No rule repo connected"
-          description={
-            isAdmin
-              ? "Connect a repo so `jaasctl guardrails push` can sync rules from CI."
-              : "This tenant hasn't connected a guardrail rule repo yet."
-          }
-        />
+        <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
+          <GitBranch className="size-4" />
+          Connect repo
+        </Button>
       )}
 
       <ConnectDialog
@@ -192,6 +178,6 @@ export function GuardrailRuleRepoLinkCard({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />
-    </div>
+    </>
   );
 }

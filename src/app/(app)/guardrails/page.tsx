@@ -1,12 +1,10 @@
-import { Plus, ShieldQuestion } from "lucide-react";
+import { ShieldQuestion } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { auth } from "@/auth";
-import { CreateGuardrailRuleDraftButton } from "@/components/tenants/create-guardrail-rule-draft-button";
 import { CustomGuardrailRulesEditor } from "@/components/tenants/custom-guardrail-rules-editor";
 import { GuardrailPolicyEditor } from "@/components/tenants/guardrail-policy-editor";
-import { GuardrailRuleRepoLinkCard } from "@/components/tenants/guardrail-rule-repo-link-card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Separator } from "@/components/ui/separator";
@@ -99,13 +97,7 @@ export default async function GuardrailsPage({
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        {titleBlock}
-        <CreateGuardrailRuleDraftButton tenantId={tenantId} className="shrink-0">
-          <Plus className="size-4" />
-          Create Rule
-        </CreateGuardrailRuleDraftButton>
-      </div>
+      {titleBlock}
 
       <div className="flex flex-wrap gap-2">
         {SCOPE_FILTERS.map((filter) => (
@@ -135,19 +127,12 @@ export default async function GuardrailsPage({
       {activeScope === "all" && <Separator />}
 
       {(activeScope === "all" || activeScope === "tenant" || activeScope === "mine") && (
-        <GuardrailRuleRepoLinkCard
-          tenantId={tenantId}
-          link={ruleRepoLink}
-          githubConnected={githubConnection.connected}
-          isAdmin={isAdmin}
-        />
-      )}
-
-      {(activeScope === "all" || activeScope === "tenant" || activeScope === "mine") && (
         <CustomGuardrailRulesEditor
           tenantId={tenantId}
           rules={visibleCustomRules}
           isAdmin={isAdmin}
+          ruleRepoLink={ruleRepoLink}
+          githubConnected={githubConnection.connected}
           emptyDescription={
             activeScope === "mine" && customRules.length > 0
               ? "You haven't created any custom rules yet — other tenant members have, though. Switch to \"My Tenant\" to see all of them."
