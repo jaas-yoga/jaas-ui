@@ -1,9 +1,12 @@
 "use client";
 
+import Editor, { type OnMount } from "@monaco-editor/react";
 import { Loader2, Trash2 } from "lucide-react";
+import type { editor as MonacoEditorNS } from "monaco-editor";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   deleteCustomGuardrailRuleDraftAction,
   publishCustomGuardrailRuleDraftAction,
@@ -57,6 +59,9 @@ export function GuardrailRuleDraftEditor({
   const [pending, startTransition] = useTransition();
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const router = useRouter();
+  const { resolvedTheme, theme } = useTheme();
+  const monacoTheme = (resolvedTheme ?? theme) === "light" || theme === "ocean" ? "vs" : "vs-dark";
+  const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null);
 
   const isForked = draft.forkedFromVersion !== null;
 
@@ -100,6 +105,26 @@ export function GuardrailRuleDraftEditor({
     startTransition(async () => {
       await saveDraft();
     });
+  }
+
+  // Ctrl/Cmd+S inside the editor (wired in handleEditorMount below) closes
+  // over whatever handleSaveOnly looked like at mount time — onMount only
+  // fires once — so route it through a ref that always points at the
+  // latest render's handler instead.
+  const handleSaveOnlyRef = useRef(handleSaveOnly);
+  useEffect(() => {
+    handleSaveOnlyRef.current = handleSaveOnly;
+  });
+
+  const handleEditorMount: OnMount = (editor, monaco) => {
+    editorRef.current = editor;
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () =>
+      handleSaveOnlyRef.current(),
+    );
+  };
+
+  function handleFormatConfig() {
+    editorRef.current?.getAction("editor.action.formatDocument")?.run();
   }
 
   function handleValidate() {
@@ -247,10 +272,29 @@ export function GuardrailRuleDraftEditor({
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-muted-foreground">
-          Config (JSON — shape depends on kind, see the guardrails service README)
-        </label>
-        <Textarea value={configText} onChange={(e) => setConfigText(e.target.value)} rows={8} />
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-muted-foreground">
+            Config (JSON — shape depends on kind, see the guardrails service README)
+          </label>
+          <Button type="button" variant="ghost" size="sm" onClick={handleFormatConfig}>
+            Format
+          </Button>
+        </div>
+        <div className="h-64 overflow-hidden rounded-md border border-input">
+          <Editor
+            language="json"
+            value={configText}
+            onChange={(value) => setConfigText(value ?? "")}
+            onMount={handleEditorMount}
+            theme={monacoTheme}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 13,
+              fontLigatures: false,
+              automaticLayout: true,
+            }}
+          />
+        </div>
       </div>
 
       {validation && (
