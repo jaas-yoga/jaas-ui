@@ -1,4 +1,4 @@
-import { GitCommitHorizontal } from "lucide-react";
+import { ArrowLeft, GitCommitHorizontal } from "lucide-react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -53,6 +53,14 @@ export default async function SkillVersionDetailPage({
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col gap-6">
+      <Link
+        href="/skills"
+        className="inline-flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        Back to Skills
+      </Link>
+
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
